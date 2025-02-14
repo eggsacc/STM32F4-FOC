@@ -1,0 +1,93 @@
+1) In foc.c->MotorInit(): zero angle initialized using attached as5600 sensor.
+   Implement as5600 object attached to each motor instance (unique I2C handler address)
+   Check sensor connected and store zero startup angle.
+
+2) HAL_GetTick() returns number of ticks since last reboot/startup, with each tick being 1ms.
+
+3) Since timer ticks are unsigned int, there is no need to handle overflow since now - prev if now has overflowed will automatically correct.
+
+4) Timer utils requires DWT_Init() to be called in main.
+
+5) Added open loop velocity control. Function generates and updates the motor->params->el_angle param in each iteration based on the time elapsed and desired velocity.
+
+6) Timer struct (htimx) added to Motor struct
+   - NOTE: When accessing a member directly from a struct variable, use the dot (.) operator. Only use arrow (->) when accessing from struct pointer.
+   - BUGFIX: motor->TIM_HandleTypeDef->Instance->CCR1 dosnt work. Must be TIM_HandleTypeDef.Instance->CCR1
+   
+################################## TO:DO ####################################
+
+1) Learn interrupts, attach interrupt to serial rx callback.
+2) Implement serial commander function.
+
+################################## UPDATES ##################################
+20/1/25:
+- Removed macros to set up motor structs; replaced with a function creating static structs on the stack.
+- Motor & sensor object has to be manually created now, in main().
+
+23/1/25:
+- Updates naming of stucts to end with _t
+- Added ReadRawAngle & ReadNormalizedAngle to AS5600.h
+- Started on close loop position control function
+
+25/1/25
+- Renamed motor struct back to Motor (instead of Motor_t)
+- Renamed SetPhaseVoltages to SetTorque
+- Finished close loop position control function, yet to test
+
+1/2/25
+- PWM problem? Motor jiterry motion, and changing PWM duty cycle seems to have a pretty significant effect.
+- Lower PWM frequency by setting prescalar.
+
+5/2/25
+- New PWM freq: 72Mhz / 256 / 8 = 35kHz (approx)
+
+9/2/25
+- Removed Kv parameter from Motor struct
+- Tried to implement an auto calibrate function to find the pole pairs & sensor direction automatically
+- I have no fucking idea what the problem is, but seems like the I2C dosn't work??
+- Trying to print the encoder values just causes the program to freeze
+- And this fucking cheap-ass stm32 board can't be debugged!!!!!
+
+################################## BUGFIX & THINGS LEARNT ##################################
+9/2/25:
+- Fucking china stm32 boards dont work man. This shit a pain in the ass to debug
+
+5/2/25:
+- Finally found the problem!!! Apparently PWM frequency & resolution is quite significant. Changed the ARR to 256 (8-bit PWM) and prescalar to 8
+
+24/1/25:
+- Sine approximation function in timer_utils.c does not work as intended -- small angles always yield "0" as the output. Caused by type-casting error
+
+20/1/25: 
+- Remember to change header file funcion definitions after updating source file.
+
+- When accessing a member directly from a struct variable, use the dot (.) operator. Only use arrow (->) when accessing from struct pointer.
+
+- Motor struct timer updated to TIM_HandleTypeDef* pointer 
+
+- Static inline functions defined in the source file are only accessible from within the file.
+  Similarly, such functions should be fully defined in the header file (.h) as the compiler does not search for it's definition elsewhere.
+  Hence, only small, short functions should be inlined.
+  
+- Static variables & structs could be created in functions and referenced even after function exit since they persist for the lifetime of the program.
+
+**************** PINOUT ********************
+
+A8    TIM1_CH1
+A9    TIM1_CH2
+A10   TIM1_CH3
+
+A6    TIM3_CH1
+A7    TIM3_CH2
+B0    TIM3_CH3
+
+B10   SCL_1
+B11   SDA_1
+
+B6    SCL_2
+B7    SDA_2
+
+C13   GPIO_OUT
+
+************ PWM frequency: ****************
+72MHz / 1024 = 70.3kHz (approx)
