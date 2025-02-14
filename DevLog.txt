@@ -14,12 +14,21 @@
    - NOTE: When accessing a member directly from a struct variable, use the dot (.) operator. Only use arrow (->) when accessing from struct pointer.
    - BUGFIX: motor->TIM_HandleTypeDef->Instance->CCR1 dosnt work. Must be TIM_HandleTypeDef.Instance->CCR1
    
-################################## TO:DO ####################################
+   
+*****************************************************************************************************************************************************************************
+
+                                                                                 TO:DO
+
+*****************************************************************************************************************************************************************************
 
 1) Learn interrupts, attach interrupt to serial rx callback.
 2) Implement serial commander function.
 
-################################## UPDATES ##################################
+*****************************************************************************************************************************************************************************
+
+                                                                                UPDATES
+
+*****************************************************************************************************************************************************************************
 20/1/25:
 - Removed macros to set up motor structs; replaced with a function creating static structs on the stack.
 - Motor & sensor object has to be manually created now, in main().
@@ -48,7 +57,17 @@
 - Trying to print the encoder values just causes the program to freeze
 - And this fucking cheap-ass stm32 board can't be debugged!!!!!
 
-################################## BUGFIX & THINGS LEARNT ##################################
+14/2/25
+- New STM32F411CEU6 is here!! And it fuking works!!
+- Ported libraries over to new project (can't seem to find a way to update the target MCU in previous project)
+- This chip runs at 96MHz & has USB DFU! Also no more fuking annoying boot-pin jumpers
+- Tested AS5600 I2C read, seems to work fine.
+
+*****************************************************************************************************************************************************************************
+
+                                                                             THINGS LEARNT
+
+*****************************************************************************************************************************************************************************
 9/2/25:
 - Fucking china stm32 boards dont work man. This shit a pain in the ass to debug
 
@@ -71,23 +90,27 @@
   
 - Static variables & structs could be created in functions and referenced even after function exit since they persist for the lifetime of the program.
 
-**************** PINOUT ********************
+*****************************************************************************************************************************************************************************
 
-A8    TIM1_CH1
-A9    TIM1_CH2
-A10   TIM1_CH3
+                                                                             PIN CONFIG
+
+*****************************************************************************************************************************************************************************
+
+A0    TIM2_CH1
+A1    TIM2_CH2
+A2    TIM2_CH3
 
 A6    TIM3_CH1
 A7    TIM3_CH2
 B0    TIM3_CH3
 
-B10   SCL_1
-B11   SDA_1
+B6    SCL_1
+B7    SDA_1
 
-B6    SCL_2
-B7    SDA_2
+B10   SCL_2
+B3    SDA_2
 
-C13   GPIO_OUT
+C13   GPIO_OUT (LED)
 
-************ PWM frequency: ****************
-72MHz / 1024 = 70.3kHz (approx)
+PWM frequency: 96MHz / 256(8-bit) / 10 (prescalar) = 37.5kHz 
+
