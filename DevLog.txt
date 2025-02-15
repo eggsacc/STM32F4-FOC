@@ -22,8 +22,11 @@
 *****************************************************************************************************************************************************************************
 
 1) Fix open loop velocity wrong calculations & noise
-2) Learn interrupts, attach interrupt to serial rx callback.
-3) Implement serial commander function.
+2) Make calibration procedure take repeated readings
+3) Handle pole pair calculations properly
+4) Learn interrupts, attach interrupt to serial rx callback.
+5) Implement serial commander function.
+6) Learn how to use swd printf() - https://www.youtube.com/watch?v=sPzQ5CniWtw
 
 *****************************************************************************************************************************************************************************
 
@@ -70,12 +73,21 @@
 - High pitch squeaking noise at lower rpms
 - Adjust PWM prescalar & try?
 - Unified sensor & motor initialization method: Both structs to be created then passed into initialization functions
+- Messing with AutoCalibration lead to the discovery of some bugs with AS5600 sensor library! The ZeroAngle() function does not set the 
+  previous_angle to 0, so the reading after zeroing was, in fact, not 0. lol
+- Also forgot to take the absolute of mechanical angle delta. Which cause the pole pair calculations to be negative sometimes.
+- Maybe make the auto-calibration procedure take multiple repeated sensor readings to approximate the pole pairs instead of just 1? Also the 
+  calculation of pole pair number could be more graceful, such as adding a rounding function instead of just truncating by typecasting.
 
 *****************************************************************************************************************************************************************************
 
                                                                              THINGS LEARNT
 
 *****************************************************************************************************************************************************************************
+16/2/25:
+- Live expressions debugging! Useful for monitoring variable changes in real time
+- Also, I legit never knew that you could run the full program with the STLink still attached lmao. Been wasting quite abit of time\
+
 9/2/25:
 - Fucking china stm32 boards dont work man. This shit a pain in the ass to debug
 

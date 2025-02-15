@@ -24,7 +24,7 @@
 /* USER CODE BEGIN Includes */
 #include "AS5600.h"
 #include "foc.h"
-#include "timer_utils.h"
+//#include "timer_utils.h"
 #include "usbd_cdc_if.h"
 #include <stdio.h>
 #include <string.h>
@@ -138,10 +138,11 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-	  OLVelocityControl(&m1, 100);
+	  BLDC_AutoCalibrate(&m1);
 	  Ua = m1.phaseVs->Ua;
 	  Ub = m1.phaseVs->Ub;
 	  Uc = m1.phaseVs->Uc;
+	  HAL_Delay(3000);
 
 	  //sprintf(tx_buff, "%d, %d, %d\n", (int)(m1.phaseVs->Ua * 1000),(int)(m1.phaseVs->Ub * 1000),(int)(m1.phaseVs->Uc * 1000));
 	  //CDC_Transmit_FS(tx_buff, strlen((const char*)tx_buff));

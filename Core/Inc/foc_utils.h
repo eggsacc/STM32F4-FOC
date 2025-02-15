@@ -34,10 +34,10 @@
 #define DEG_TO_RAD 0.01745329251
 
 /*
- * Constrain macro
+ * Some macros
  */
 #define _constrain(amt,low,high) ((amt)<(low)?(low):((amt)>(high)?(high):(amt)))
-
+#define _abs(val)((val < 0) ? (-val) : (val))
 /*
  * Trig approximation functions using look-up table
  */

@@ -21,7 +21,6 @@
 /*
  * Constants
  */
-#define DIR 1
 #define KP 7.639437268
 
 /*

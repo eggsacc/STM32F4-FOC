@@ -36,6 +36,7 @@ static HAL_StatusTypeDef AS5600_ReadRegisters(AS5600 *dev, uint8_t reg, uint8_t 
 void AS5600_ZeroAngle(AS5600* dev)
 {
 	dev->total_angle_rad = 0;
+	dev->prev_raw_angle = AS5600_ReadRawAngle(dev);
 }
 
 /*

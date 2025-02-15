@@ -9,6 +9,7 @@
  * Includes
  */
 #include <stm32f4xx_hal.h>
+#include <stdlib.h>
 #include "usb_device.h"
 #include "usbd_cdc_if.h"
 #include "stm32f4xx_hal_tim.h"
@@ -141,30 +142,42 @@ void BLDC_AutoCalibrate(Motor* motor)
 		return;
 	}
 
-	motor->dqVals->Uq = 3;
+	/* Set motor to some fixed electrical angle */
+	motor->dqVals->Uq = motor->supply_voltage / 3;
+	motor->vars->electric_angle = _PI;
+	SetTorque(motor);
+
+	/* Wait for motor to reach position & read sensor value */
+	HAL_Delay(2000);
+	float angle_a = AS5600_ReadAngle(motor->sensor);
+
+	/* Rotate stator by PI/2 rads */
 	motor->vars->electric_angle = _3PI_2;
 	SetTorque(motor);
 
-	HAL_Delay(1000);
-	AS5600_ZeroAngle(motor->sensor);
-	float angle_a = AS5600_ReadAngle(motor->sensor);
-
-
-	motor->vars->electric_angle = 0;
-	SetTorque(motor);
+	/* Wait for rotor to reach position, then read second sensor value */
 	HAL_Delay(2000);
 	float angle_b = AS5600_ReadAngle(motor->sensor);
 
-
+	/* Calculate mechanical angle delta */
 	float delta = angle_b - angle_a;
 
-	motor->sensor_dir = delta < 0 ? 0 : -1;
+	/* Set sensor angle inverter */
+	motor->sensor_dir = delta > 0 ? 1 : -1;
 
-	motor->pole_pairs = (int)(_3PI_2 / delta);
+	uint8_t pole_pairs = (int)(_PI_2 / _abs(delta));
 
-	AS5600_ZeroAngle(motor->sensor);
+	/* Check if pole pair calculation is reasonable */
+	if(pole_pairs >= 5 || pole_pairs <= 14)
+	{
+		motor->pole_pairs = pole_pairs;
+	}
+
+
 	motor->dqVals->Uq = 0;
 	SetTorque(motor);
+
+	AS5600_ZeroAngle(motor->sensor);
 }
 
 /*
@@ -228,8 +241,8 @@ void CLPositionControl(Motor* motor, float target_pos)
 	}
 
 	/* Electrical angle calculated based on sensor angle * pole pairs */
-	motor->vars->electric_angle = _normalizeAngle((float)(DIR * motor->pole_pairs) * AS5600_ReadNormalizedAngle(motor->sensor));
+	motor->vars->electric_angle = _normalizeAngle((float)(motor->sensor_dir * motor->pole_pairs) * AS5600_ReadNormalizedAngle(motor->sensor));
 	/* KP sets max torque when shaft is 45deg (0.7854 rad) off from target pos */
-	motor->dqVals->Uq = KP * (target_pos - DIR * AS5600_ReadAngle(motor->sensor));
+	motor->dqVals->Uq = KP * (target_pos - motor->sensor_dir * AS5600_ReadAngle(motor->sensor));
 	SetTorque(motor);
 }
