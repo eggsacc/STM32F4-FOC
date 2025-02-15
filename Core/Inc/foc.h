@@ -13,9 +13,9 @@
  */
 #include "foc_utils.h"
 #include "AS5600.h"
-#include "stm32f1xx_hal.h"
-#include "stm32f1xx_hal_tim.h"
-#include "stm32f103xb.h"
+#include "stm32f4xx_hal.h"
+#include "stm32f4xx_hal_tim.h"
+#include "stm32f411xe.h"
 #include "timer_utils.h"
 
 /*
@@ -58,7 +58,7 @@ typedef struct
 {
 	int8_t sensor_dir;
 	uint8_t pole_pairs;
-	float motor_v_limit;
+	float voltage_limit;
 	float supply_voltage;
 
 	Var_t* vars;
@@ -73,7 +73,7 @@ typedef struct
  */
 // void DebugSensor(Motor_t* motor);
 void PWM_Start_3_Channel(TIM_HandleTypeDef* timer);
-Motor MotorInit(TIM_HandleTypeDef* timer, float supply_voltage, uint8_t pole_pairs);
+void MotorInit(Motor* motor, TIM_HandleTypeDef* timer, float supply_voltage, uint8_t pole_pairs);
 void LinkSensor(Motor* motor, AS5600* sensor, I2C_HandleTypeDef *i2c_handle);
 void BLDC_AutoCalibrate(Motor* motor);
 void MotorDebug(Motor* motor);

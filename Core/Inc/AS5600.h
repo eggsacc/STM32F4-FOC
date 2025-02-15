@@ -11,7 +11,7 @@
 /*
  * Includes
  */
-#include "stm32f1xx_hal.h" // for I2C
+#include "stm32f4xx_hal.h" // for I2C
 
 /*
  * Defines

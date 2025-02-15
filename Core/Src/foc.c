@@ -8,11 +8,11 @@
 /*
  * Includes
  */
-#include <stm32f1xx_hal.h>
+#include <stm32f4xx_hal.h>
 #include "usb_device.h"
 #include "usbd_cdc_if.h"
-#include "stm32f1xx_hal_tim.h"
-#include "stm32f103xb.h"
+#include "stm32f4xx_hal_tim.h"
+#include "stm32f411xe.h"
 #include "foc_utils.h"
 #include "foc.h"
 #include "AS5600.h"
@@ -60,7 +60,7 @@ __STATIC_INLINE void SetPWM(Motor* motor)
  *
  * @retval Motor motor
  */
-Motor MotorInit(TIM_HandleTypeDef* timer, float supply_voltage, uint8_t pole_pairs)
+void MotorInit(Motor* motor, TIM_HandleTypeDef* timer, float supply_voltage, uint8_t pole_pairs)
 {
 	/* Create structs */
 	static Var_t motor_vars;
@@ -72,9 +72,18 @@ Motor MotorInit(TIM_HandleTypeDef* timer, float supply_voltage, uint8_t pole_pai
 	static DQval_t motor_dq = {0, 0};
 	static PhaseV_t motor_pv = {0, 0, 0};
 
-	Motor motor = {0, pole_pairs, supply_voltage / 2, supply_voltage, &motor_vars, &motor_dq, &motor_pv, NULL, timer};
+	DWT_Init();
 
-	return motor;
+	/* Motor struct initialization */
+	motor->dqVals = &motor_dq;
+	motor->phaseVs = &motor_pv;
+	motor->vars = &motor_vars;
+	motor->sensor = NULL;
+	motor->timer = timer;
+	motor->sensor_dir = 0;
+	motor->pole_pairs = pole_pairs;
+	motor->supply_voltage = supply_voltage;
+	motor->voltage_limit = supply_voltage / 2;
 }
 
 /*
@@ -84,7 +93,7 @@ Motor MotorInit(TIM_HandleTypeDef* timer, float supply_voltage, uint8_t pole_pai
  */
 void SetTorque(Motor* motor) {
 	/* Constrain Uq to within voltage range */
-	motor->dqVals->Uq = _constrain(motor->dqVals->Uq, -motor->motor_v_limit, motor->motor_v_limit);
+	motor->dqVals->Uq = _constrain(motor->dqVals->Uq, -motor->voltage_limit, motor->voltage_limit);
     /* Normalize electric angle */
     float el_angle = _normalizeAngle(motor->vars->electric_angle);
 
@@ -108,21 +117,14 @@ void SetTorque(Motor* motor) {
  */
 void LinkSensor(Motor* motor, AS5600* sensor, I2C_HandleTypeDef *i2c_handle)
 {
-	sprintf(usb_tx_buffer, "Linking sensor\n");
-	CDC_Transmit_FS(usb_tx_buffer, strlen((const char*)usb_tx_buffer));
-
 	uint8_t init_stat = AS5600_Init(sensor, i2c_handle, 1);
 
 	/* Check if sensor link successful */
 	if(init_stat != 0)
 	{
-		sprintf(usb_tx_buffer, "Link sensor fail! Init stat: %d\n", init_stat);
-		CDC_Transmit_FS(usb_tx_buffer, strlen((const char*)usb_tx_buffer));
 		motor->sensor = NULL;
 		return;
 	}
-	sprintf(usb_tx_buffer, "Sensor add: %p\n", sensor);
-	CDC_Transmit_FS(usb_tx_buffer, strlen((const char*)usb_tx_buffer));
 
 	motor->sensor = sensor;
 }
@@ -136,8 +138,6 @@ void BLDC_AutoCalibrate(Motor* motor)
 	/* Check if encoder & timer attached */
 	if(motor->sensor == NULL || motor->timer == NULL)
 	{
-		sprintf(usb_tx_buffer, "Auto calibration fail!\n");
-		CDC_Transmit_FS(usb_tx_buffer, strlen((const char*)usb_tx_buffer));
 		return;
 	}
 
@@ -148,19 +148,16 @@ void BLDC_AutoCalibrate(Motor* motor)
 	HAL_Delay(1000);
 	AS5600_ZeroAngle(motor->sensor);
 	float angle_a = AS5600_ReadAngle(motor->sensor);
-	sprintf(usb_tx_buffer, "Angle alpha: %d\n", (int)(angle_a * 1000));
-	CDC_Transmit_FS(usb_tx_buffer, strlen((const char*)usb_tx_buffer));
+
 
 	motor->vars->electric_angle = 0;
 	SetTorque(motor);
 	HAL_Delay(2000);
 	float angle_b = AS5600_ReadAngle(motor->sensor);
-	sprintf(usb_tx_buffer, "Angle alpha: %d\n", (int)(angle_b * 1000));
-	CDC_Transmit_FS(usb_tx_buffer, strlen((const char*)usb_tx_buffer));
+
 
 	float delta = angle_b - angle_a;
-	sprintf(usb_tx_buffer, "Delta: %d\n", (int)(delta * 1000));
-	CDC_Transmit_FS(usb_tx_buffer, strlen((const char*)usb_tx_buffer));
+
 	motor->sensor_dir = delta < 0 ? 0 : -1;
 
 	motor->pole_pairs = (int)(_3PI_2 / delta);
@@ -209,7 +206,7 @@ void OLVelocityControl(Motor* motor, float target_velocity)
 	/* Update virtual shaft angle, and calculate phase voltages */
 	motor->vars->shaft_angle = _normalizeAngle(motor->vars->shaft_angle + target_velocity * time_elapsed_s);
 	motor->vars->electric_angle = _electricalAngle(motor->vars->shaft_angle, motor->pole_pairs);
-	motor->dqVals->Uq = motor->motor_v_limit;
+	motor->dqVals->Uq = motor->voltage_limit;
 	SetTorque(motor);
 
 	/* Update timestamp */

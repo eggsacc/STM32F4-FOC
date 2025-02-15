@@ -21,8 +21,9 @@
 
 *****************************************************************************************************************************************************************************
 
-1) Learn interrupts, attach interrupt to serial rx callback.
-2) Implement serial commander function.
+1) Fix open loop velocity wrong calculations & noise
+2) Learn interrupts, attach interrupt to serial rx callback.
+3) Implement serial commander function.
 
 *****************************************************************************************************************************************************************************
 
@@ -62,6 +63,13 @@
 - Ported libraries over to new project (can't seem to find a way to update the target MCU in previous project)
 - This chip runs at 96MHz & has USB DFU! Also no more fuking annoying boot-pin jumpers
 - Tested AS5600 I2C read, seems to work fine.
+
+15/2/25
+- Don't forget to call DWT_Init() !!! If timer not initialized, the micros() function does nothing.
+- Open loop velocity control seems to have some bugs... Maybe the angle generation has some issues?
+- High pitch squeaking noise at lower rpms
+- Adjust PWM prescalar & try?
+- Unified sensor & motor initialization method: Both structs to be created then passed into initialization functions
 
 *****************************************************************************************************************************************************************************
 

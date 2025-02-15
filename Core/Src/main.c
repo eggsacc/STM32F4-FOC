@@ -22,7 +22,12 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "AS5600.h"
+#include "foc.h"
+#include "timer_utils.h"
+#include "usbd_cdc_if.h"
+#include <stdio.h>
+#include <string.h>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -49,7 +54,9 @@ TIM_HandleTypeDef htim3;
 TIM_HandleTypeDef htim11;
 
 /* USER CODE BEGIN PV */
-
+float Ua;
+float Ub;
+float Uc;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -105,6 +112,22 @@ int main(void)
   MX_TIM3_Init();
   MX_USB_DEVICE_Init();
   /* USER CODE BEGIN 2 */
+  /* Start PWM channels */
+  PWM_Start_3_Channel(&htim2);
+
+  /* Create sensor & motor object */
+  AS5600 s1;
+  Motor m1;
+
+  /* Init sensor & motor objects */
+  AS5600_Init(&s1, &hi2c1, 1);
+  MotorInit(&m1, &htim2, 12, 7);
+
+  /* Attach sensor to motor object */
+  LinkSensor(&m1, &s1, &hi2c1);
+
+  /* USB tx buffer */
+  uint8_t tx_buff[128];
 
   /* USER CODE END 2 */
 
@@ -115,6 +138,13 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+	  OLVelocityControl(&m1, 100);
+	  Ua = m1.phaseVs->Ua;
+	  Ub = m1.phaseVs->Ub;
+	  Uc = m1.phaseVs->Uc;
+
+	  //sprintf(tx_buff, "%d, %d, %d\n", (int)(m1.phaseVs->Ua * 1000),(int)(m1.phaseVs->Ub * 1000),(int)(m1.phaseVs->Uc * 1000));
+	  //CDC_Transmit_FS(tx_buff, strlen((const char*)tx_buff));
   }
   /* USER CODE END 3 */
 }
