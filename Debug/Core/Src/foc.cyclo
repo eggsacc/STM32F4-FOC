@@ -1,0 +1,15 @@
+../Core/Inc/foc_utils.h:51:23:_cos	2
+../Core/Inc/foc_utils.h:62:23:_normalizeAngle	2
+../Core/Inc/foc_utils.h:73:23:_electricalAngle	1
+../Core/Inc/AS5600.h:65:23:AS5600_ReadNormalizedAngle	1
+../Core/Inc/timer_utils.h:21:22:DWT_Init	1
+../Core/Inc/timer_utils.h:34:26:micros	1
+../Core/Src/foc.c:31:6:PWM_Start_3_Channel	1
+../Core/Src/foc.c:43:22:SetPWM	7
+../Core/Src/foc.c:64:6:MotorInit	1
+../Core/Src/foc.c:95:6:SetTorque	3
+../Core/Src/foc.c:119:6:LinkSensor	2
+../Core/Src/foc.c:137:6:BLDC_AutoCalibrate	7
+../Core/Src/foc.c:185:6:MotorDebug	1
+../Core/Src/foc.c:201:6:OLVelocityControl	3
+../Core/Src/foc.c:233:6:CLPositionControl	2

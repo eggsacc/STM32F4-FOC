@@ -1,0 +1,6 @@
+../Core/Src/AS5600.c:13:26:AS5600_ReadRegister	1
+../Core/Src/AS5600.c:18:26:AS5600_ReadRegisters	1
+../Core/Src/AS5600.c:36:6:AS5600_ZeroAngle	1
+../Core/Src/AS5600.c:46:9:AS5600_Init	3
+../Core/Src/AS5600.c:91:7:AS5600_ReadAngle	3
+../Core/Src/AS5600.c:118:10:AS5600_ReadRawAngle	2
