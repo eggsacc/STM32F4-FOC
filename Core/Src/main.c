@@ -117,7 +117,7 @@ int main(void)
 
   /* Create sensor & motor object */
   AS5600 s1;
-  Motor m1;
+  BLDCMotor m1;
 
   /* Init sensor & motor objects */
   AS5600_Init(&s1, &hi2c1, 1);

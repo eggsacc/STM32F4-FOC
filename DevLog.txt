@@ -22,8 +22,6 @@
 *****************************************************************************************************************************************************************************
 
 1) Fix open loop velocity wrong calculations & noise
-2) Make calibration procedure take repeated readings
-3) Handle pole pair calculations properly
 4) Learn interrupts, attach interrupt to serial rx callback.
 5) Implement serial commander function.
 6) Learn how to use swd printf() - https://www.youtube.com/watch?v=sPzQ5CniWtw
@@ -78,6 +76,14 @@
 - Also forgot to take the absolute of mechanical angle delta. Which cause the pole pair calculations to be negative sometimes.
 - Maybe make the auto-calibration procedure take multiple repeated sensor readings to approximate the pole pairs instead of just 1? Also the 
   calculation of pole pair number could be more graceful, such as adding a rounding function instead of just truncating by typecasting.
+
+17/2/25
+- Removed electrical angle parameter from var_t struct. Don't think its that useful
+- Optimized auto calibrate function to now perform repeat taking the mechanical angle 3 times and using the average
+- Renamed Motor struct to BLDCMotor for clarity (future implementation of stepper drivers, maybe)
+- Something seems wrong about the AS5600_ReadNormalizedAngle function :O I think it ignores zeroing and reads a different angle than ReadAngle()?
+- I think that is due to ReadAngle being cumulative while ReadNormalized angle simply converts the raw angle to radians?
+- But anyways I'm simply just not using it ReadNormalized i think, the bug can become a feature.
 
 *****************************************************************************************************************************************************************************
 
