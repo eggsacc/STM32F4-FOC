@@ -119,11 +119,10 @@ int main(void)
   AS5600 s1;
   BLDCMotor m1;
 
-  /* Init sensor & motor objects */
-  AS5600_Init(&s1, &hi2c1, 1);
+  /* Init motor object */
   MotorInit(&m1, &htim2, 12, 7);
 
-  /* Attach sensor to motor object */
+  /* Attach sensor to motor object & initialize */
   LinkSensor(&m1, &s1, &hi2c1);
 
   /* USB tx buffer */
@@ -138,11 +137,9 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-	  BLDC_AutoCalibrate(&m1);
-	  Ua = m1.phaseVs->Ua;
-	  Ub = m1.phaseVs->Ub;
-	  Uc = m1.phaseVs->Uc;
-	  HAL_Delay(3000);
+	  //CLPositionControl(&m1, 2.0);
+	  OLVelocityControl(&m1, 10);
+
 
 	  //sprintf(tx_buff, "%d, %d, %d\n", (int)(m1.phaseVs->Ua * 1000),(int)(m1.phaseVs->Ub * 1000),(int)(m1.phaseVs->Uc * 1000));
 	  //CDC_Transmit_FS(tx_buff, strlen((const char*)tx_buff));
@@ -282,9 +279,9 @@ static void MX_TIM2_Init(void)
 
   /* USER CODE END TIM2_Init 1 */
   htim2.Instance = TIM2;
-  htim2.Init.Prescaler = 10;
-  htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim2.Init.Period = 255;
+  htim2.Init.Prescaler = 2;
+  htim2.Init.CounterMode = TIM_COUNTERMODE_CENTERALIGNED1;
+  htim2.Init.Period = 511;
   htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim2.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_ENABLE;
   if (HAL_TIM_PWM_Init(&htim2) != HAL_OK)

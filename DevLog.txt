@@ -21,7 +21,7 @@
 
 *****************************************************************************************************************************************************************************
 
-1) Fix open loop velocity wrong calculations & noise
+1) Fix open loop velocity wrong calculations
 4) Learn interrupts, attach interrupt to serial rx callback.
 5) Implement serial commander function.
 6) Learn how to use swd printf() - https://www.youtube.com/watch?v=sPzQ5CniWtw
@@ -84,6 +84,16 @@
 - Something seems wrong about the AS5600_ReadNormalizedAngle function :O I think it ignores zeroing and reads a different angle than ReadAngle()?
 - I think that is due to ReadAngle being cumulative while ReadNormalized angle simply converts the raw angle to radians?
 - But anyways I'm simply just not using it ReadNormalized i think, the bug can become a feature.
+- Closed loop position control works. let's gooo!!!!
+- Weird problem where the motor stutters ALOT and just freaks out at certain angles. howcome?
+- Changed PWM to central-aligned mode, hopefully it's better.
+
+18/2/25
+- Changed resolution of PWM to a weird 9-bit
+- Perhaps some miracle just happened, but the stutters mentioned previously seems to have fixed itself
+- The code works... but why?
+- Also, when debugging, it seems like the velocity open loop control actually runs every 5 microseconds = 200kHz. Which is mad impressive.
+- The open loop velocity calculations definitely has some issues. But idk what or where. The motor rotates wayyy slower than expected.
 
 *****************************************************************************************************************************************************************************
 

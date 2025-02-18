@@ -43,9 +43,10 @@ void PWM_Start_3_Channel(TIM_HandleTypeDef* timer)
  */
 __STATIC_INLINE void SetPWM(BLDCMotor* motor)
 {
-	motor->timer->Instance->CCR1 = _constrain(motor->phaseVs->Ua / motor->supply_voltage, 0.0f, 1.0f) * 256;
-	motor->timer->Instance->CCR2 = _constrain(motor->phaseVs->Ub / motor->supply_voltage, 0.0f, 1.0f) * 256;
-	motor->timer->Instance->CCR3 = _constrain(motor->phaseVs->Uc / motor->supply_voltage, 0.0f, 1.0f) * 256;
+	uint16_t ARR = motor->timer->Instance->ARR;
+	motor->timer->Instance->CCR1 = _constrain(motor->phaseVs->Ua / motor->supply_voltage, 0.0f, 1.0f) * ARR;
+	motor->timer->Instance->CCR2 = _constrain(motor->phaseVs->Ub / motor->supply_voltage, 0.0f, 1.0f) * ARR;
+	motor->timer->Instance->CCR3 = _constrain(motor->phaseVs->Uc / motor->supply_voltage, 0.0f, 1.0f) * ARR;
 }
 
 /*
@@ -89,10 +90,10 @@ void MotorInit(BLDCMotor* motor, TIM_HandleTypeDef* timer, float supply_voltage,
 	motor->vars = &motor_vars;
 	motor->sensor = NULL;
 	motor->timer = timer;
-	motor->sensor_dir = 0;
+	motor->sensor_dir = 1;
 	motor->pole_pairs = pole_pairs;
 	motor->supply_voltage = supply_voltage;
-	motor->voltage_limit = supply_voltage / 2;
+	motor->voltage_limit = supply_voltage / 3;
 }
 
 /*
@@ -136,6 +137,15 @@ void LinkSensor(BLDCMotor* motor, AS5600* sensor, I2C_HandleTypeDef *i2c_handle)
 	}
 
 	motor->sensor = sensor;
+
+	motor->dqVals->Uq = motor->voltage_limit / 2;
+	motor->vars->shaft_angle = _PI_2;
+	SetTorque(motor);
+	HAL_Delay(1500);
+	AS5600_ZeroAngle(sensor);
+	motor->dqVals->Uq = 0;
+	motor->vars->shaft_angle = 0;
+	SetTorque(motor);
 }
 
 /*
@@ -161,6 +171,7 @@ void BLDC_AutoCalibrate(BLDCMotor* motor)
 	motor->pole_pairs = 1;
 	motor->vars->shaft_angle = 0;
 	SetTorque(motor);
+	HAL_Delay(1500);
 	AS5600_ZeroAngle(motor->sensor);
 
 	/* Take 3 repeated mechanical angle readings */
@@ -169,13 +180,13 @@ void BLDC_AutoCalibrate(BLDCMotor* motor)
 		motor->vars->shaft_angle = _PI;
 		SetTorque(motor);
 		HAL_Delay(1500);
-		angle_a = AS5600_ReadNormalizedAngle(motor->sensor);
+		angle_a = AS5600_ReadAngle(motor->sensor);
 		HAL_Delay(500);
 
 		motor->vars->shaft_angle = _3PI_2;
 		SetTorque(motor);
 		HAL_Delay(1500);
-		angle_b = AS5600_ReadNormalizedAngle(motor->sensor);
+		angle_b = AS5600_ReadAngle(motor->sensor);
 		HAL_Delay(500);
 
 		total += angle_b - angle_a;
@@ -245,7 +256,7 @@ void OLVelocityControl(BLDCMotor* motor, float target_velocity)
 	/* Time difference since last call */
 	uint32_t time_elapsed_us = now_us - motor->vars->prev_us;
 	float time_elapsed_s = time_elapsed_us  / 1000000.0f;
-	time_elapsed_s = time_elapsed_s > 0.5 ? 0.001 : time_elapsed_s;
+	time_elapsed_s = time_elapsed_s > 0.5 ? 0.00001 : time_elapsed_s;
 
 	/* Update virtual shaft angle, and calculate phase voltages */
 	motor->vars->shaft_angle = _normalizeAngle(motor->vars->shaft_angle + target_velocity * time_elapsed_s);

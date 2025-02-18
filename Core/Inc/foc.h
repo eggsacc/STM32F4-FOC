@@ -21,7 +21,7 @@
 /*
  * Constants
  */
-#define KP 7.639437268
+#define KP 3 //7.639437268
 
 /*
  * Typedef structures
