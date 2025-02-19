@@ -1,0 +1,10 @@
+../Core/Inc/foc_utils.h:51:23:_cos	2
+../Core/Inc/foc_utils.h:62:23:_normalizeAngle	2
+../Core/Inc/foc_utils.h:73:23:_electricalAngle	1
+../Core/Inc/timer_utils.h:21:22:DWT_Init	1
+../Core/Src/foc_hw.c:24:6:PWM_Start_3_Channel	1
+../Core/Src/foc_hw.c:36:22:SetPWM	7
+../Core/Src/foc_hw.c:58:6:MotorInit	1
+../Core/Src/foc_hw.c:96:6:SetTorque	3
+../Core/Src/foc_hw.c:120:6:LinkSensor	2
+../Core/Src/foc_hw.c:148:6:BLDC_AutoCalibrate	9

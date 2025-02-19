@@ -46,6 +46,8 @@ typedef struct{
 
 	// total angle in radians
 	float total_angle_rad;
+
+	uint32_t prev_time_us;
 } AS5600;
 
 /*
@@ -61,6 +63,7 @@ void AS5600_ZeroAngle(AS5600* dev);
  */
 float AS5600_ReadAngle(AS5600 *dev);
 uint16_t AS5600_ReadRawAngle(AS5600 *dev);
+float AS5600_GetVelocity(AS5600* dev);
 
 __STATIC_INLINE float AS5600_ReadNormalizedAngle(AS5600 *dev)
 {

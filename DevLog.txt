@@ -21,11 +21,13 @@
 
 *****************************************************************************************************************************************************************************
 
-1) Fix open loop velocity wrong calculations
-4) Learn interrupts, attach interrupt to serial rx callback.
-5) Implement serial commander function.
-6) Learn how to use swd printf() - https://www.youtube.com/watch?v=sPzQ5CniWtw
+HIGH PRIO
+- Learn interrupts, attach interrupt to serial rx callback.
+- Implement serial commander function.
+- Learn how to use swd printf() - https://www.youtube.com/watch?v=sPzQ5CniWtw
 
+LOW PRIO
+- Implement time check for function calls to run everything at ~1kHz
 *****************************************************************************************************************************************************************************
 
                                                                                 UPDATES
@@ -95,11 +97,24 @@
 - Also, when debugging, it seems like the velocity open loop control actually runs every 5 microseconds = 200kHz. Which is mad impressive.
 - The open loop velocity calculations definitely has some issues. But idk what or where. The motor rotates wayyy slower than expected.
 
+19/2/25
+- Seperated motor hardware initialization functions & control functions into foc_hw.h and foc_core.h respectively
+- Disabled USBD for now; not really useful i think
+- Added a AS5600_GetVelocity() function to the AS5600 library (also uses DWT timer; remember to initialize!)
+- FOUND THE PROBLEM WITH OPEN LOOP VELOCITY ISSUE :: THE PREVIOUS TIMESTAMP SHOULD NOT BE UPDATED USING MICROS()!!
+- Since I was calling micros() and updating the previous angle at the end of the loop, the time step between function calls are erroneously small & hence 
+  caused the super slow rotations.
+
+
 *****************************************************************************************************************************************************************************
 
                                                                              THINGS LEARNT
 
 *****************************************************************************************************************************************************************************
+19/2/25:
+- Don't update the previous timestamp at the end of the loop - all the time elapsed within the loop will be deducted which leads to a really small time difference across calls.\
+- If we include library "A" in main.c, which already includes libraries "B" and "C", all prototypes in libraries "B" and "C" are also accessible in main.c.
+
 16/2/25:
 - Live expressions debugging! Useful for monitoring variable changes in real time
 - Also, I legit never knew that you could run the full program with the STLink still attached lmao. Been wasting quite abit of time\

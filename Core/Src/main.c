@@ -18,15 +18,10 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
-#include "usb_device.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "AS5600.h"
-#include "foc.h"
-//#include "timer_utils.h"
-#include "usbd_cdc_if.h"
-#include <stdio.h>
+#include "foc_core.h"
 #include <string.h>
 /* USER CODE END Includes */
 
@@ -51,7 +46,8 @@ I2C_HandleTypeDef hi2c2;
 
 TIM_HandleTypeDef htim2;
 TIM_HandleTypeDef htim3;
-TIM_HandleTypeDef htim11;
+
+UART_HandleTypeDef huart1;
 
 /* USER CODE BEGIN PV */
 float Ua;
@@ -64,9 +60,9 @@ void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_I2C1_Init(void);
 static void MX_TIM2_Init(void);
-static void MX_TIM11_Init(void);
 static void MX_I2C2_Init(void);
 static void MX_TIM3_Init(void);
+static void MX_USART1_UART_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -107,10 +103,9 @@ int main(void)
   MX_GPIO_Init();
   MX_I2C1_Init();
   MX_TIM2_Init();
-  MX_TIM11_Init();
   MX_I2C2_Init();
   MX_TIM3_Init();
-  MX_USB_DEVICE_Init();
+  MX_USART1_UART_Init();
   /* USER CODE BEGIN 2 */
   /* Start PWM channels */
   PWM_Start_3_Channel(&htim2);
@@ -138,7 +133,10 @@ int main(void)
 
     /* USER CODE BEGIN 3 */
 	  //CLPositionControl(&m1, 2.0);
-	  OLVelocityControl(&m1, 10);
+	  //OLVelocityControl(&m1, 10);
+	  CLVelocityControl(&m1, 6);
+	  //sprintf(tx_buff, ">Reading:%d\n\r", (int)(AS5600_GetVelocity(&s1) * 1000));
+	  //CDC_Transmit_FS(tx_buff, strlen((const char*)tx_buff));
 
 
 	  //sprintf(tx_buff, "%d, %d, %d\n", (int)(m1.phaseVs->Ua * 1000),(int)(m1.phaseVs->Ub * 1000),(int)(m1.phaseVs->Uc * 1000));
@@ -279,9 +277,9 @@ static void MX_TIM2_Init(void)
 
   /* USER CODE END TIM2_Init 1 */
   htim2.Instance = TIM2;
-  htim2.Init.Prescaler = 2;
-  htim2.Init.CounterMode = TIM_COUNTERMODE_CENTERALIGNED1;
-  htim2.Init.Period = 511;
+  htim2.Init.Prescaler = 10;
+  htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim2.Init.Period = 255;
   htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim2.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_ENABLE;
   if (HAL_TIM_PWM_Init(&htim2) != HAL_OK)
@@ -375,33 +373,35 @@ static void MX_TIM3_Init(void)
 }
 
 /**
-  * @brief TIM11 Initialization Function
+  * @brief USART1 Initialization Function
   * @param None
   * @retval None
   */
-static void MX_TIM11_Init(void)
+static void MX_USART1_UART_Init(void)
 {
 
-  /* USER CODE BEGIN TIM11_Init 0 */
+  /* USER CODE BEGIN USART1_Init 0 */
 
-  /* USER CODE END TIM11_Init 0 */
+  /* USER CODE END USART1_Init 0 */
 
-  /* USER CODE BEGIN TIM11_Init 1 */
+  /* USER CODE BEGIN USART1_Init 1 */
 
-  /* USER CODE END TIM11_Init 1 */
-  htim11.Instance = TIM11;
-  htim11.Init.Prescaler = 0;
-  htim11.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim11.Init.Period = 65535;
-  htim11.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
-  htim11.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
-  if (HAL_TIM_Base_Init(&htim11) != HAL_OK)
+  /* USER CODE END USART1_Init 1 */
+  huart1.Instance = USART1;
+  huart1.Init.BaudRate = 115200;
+  huart1.Init.WordLength = UART_WORDLENGTH_8B;
+  huart1.Init.StopBits = UART_STOPBITS_1;
+  huart1.Init.Parity = UART_PARITY_NONE;
+  huart1.Init.Mode = UART_MODE_TX_RX;
+  huart1.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+  huart1.Init.OverSampling = UART_OVERSAMPLING_16;
+  if (HAL_UART_Init(&huart1) != HAL_OK)
   {
     Error_Handler();
   }
-  /* USER CODE BEGIN TIM11_Init 2 */
+  /* USER CODE BEGIN USART1_Init 2 */
 
-  /* USER CODE END TIM11_Init 2 */
+  /* USER CODE END USART1_Init 2 */
 
 }
 

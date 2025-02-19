@@ -6,6 +6,7 @@
  */
 
 #include "AS5600.h"
+#include "timer_utils.h"
 
 /*
  * Static low level functions to read/write to registers
@@ -48,6 +49,7 @@ uint8_t AS5600_Init(AS5600* dev, I2C_HandleTypeDef* i2c_handle, uint8_t zero)
 	/* Set struct params */
 	dev->i2cHandle = i2c_handle;
 	dev->total_angle_rad = 0;
+	dev->prev_time_us = 0;
 
 	uint8_t err_num = 0;
 
@@ -131,7 +133,28 @@ uint16_t AS5600_ReadRawAngle(AS5600 *dev)
 	return raw_angle;
 }
 
+/* @brief Returns the rate of change of sensor angle (velocity)
+ * @param[in] AS5600* sensor
+ */
+float AS5600_GetVelocity(AS5600* dev)
+{
+	uint32_t now_us = micros();
 
+	/* Save previous angle */
+	float prev_angle = dev->total_angle_rad;
+
+	/* Calculate time delta */
+	float time_delta_s = (now_us - dev->prev_time_us) * 0.000001f;
+	time_delta_s = (time_delta_s > 0.1) ? 0.0001f : time_delta_s;
+
+	/* Calculate angle delta */
+	float angle_delta = AS5600_ReadAngle(dev) - prev_angle;
+
+	/* Update sensor timestamp */
+	dev->prev_time_us = now_us;
+
+	return angle_delta / time_delta_s;
+}
 
 
 
