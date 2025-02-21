@@ -1,2 +1,4 @@
 ../Core/Inc/timer_utils.h:34:26:micros	1
-../Core/Src/lpf.c:22:7:LowPassFilter	3
+../Core/Src/lpf.c:17:7:LPF_Filter	3
+../Core/Src/lpf.c:49:7:LPF_Init	1
+../Core/Src/lpf.c:66:6:LPF_ConfigureTimeConst	1

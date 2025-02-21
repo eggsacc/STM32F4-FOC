@@ -9,21 +9,16 @@
 #include "timer_utils.h"
 
 /*
- * Static variables
- */
-static uint32_t LPF_prev_timestamp = 0;
-static float LPF_prev_data = 0;
-
-/*
  * @brief Exponential moving average LPF
+ * @param[in] LPF_t lpf
  * @param[in] float data
- * @retval float filtered data
+ * @retval float filtered_data
  */
-float LowPassFilter(float x)
+float LPF_Filter(LPF_t* lpf_dev, float x)
 {
 	/* Get current time & calculate time difference */
 	uint32_t now_us = micros();
-	float dt = (now_us - LPF_prev_timestamp) * 0.000001f;
+	float dt = (now_us - lpf_dev->prev_us) * 0.000001f;
 
 	/* Check if dt is reasonable; if not, discard value & return original x */
 	if(dt < 0)
@@ -32,18 +27,43 @@ float LowPassFilter(float x)
 	}
 	else if(dt > 0.2)
 	{
-		LPF_prev_data = x;
-		LPF_prev_timestamp = now_us;
+		lpf_dev->prev_data = x;
+		lpf_dev->prev_us = now_us;
 		return x;
 	}
 
 	/* Calculate alpha value & filtered datapoint */
-	float alpha = TIME_CONSTANT / (TIME_CONSTANT + dt);
-	float y = alpha * LPF_prev_data + (1.0f - alpha) * x;
+	float alpha = lpf_dev->time_const / (lpf_dev->time_const + dt);
+	float y = alpha * lpf_dev->prev_data + (1.0f - alpha) * x;
 
 	/* Update timestamps & previous data */
-	LPF_prev_data = y;
-	LPF_prev_timestamp = now_us;
+	lpf_dev->prev_data = y;
+	lpf_dev->prev_us = now_us;
 
 	return y;
+}
+
+/*
+ * @brief LPF struct initialization function
+ */
+LPF_t LPF_Init()
+{
+	LPF_t lpf_dev = {
+			.prev_data = 0,
+			.prev_us = 0,
+			.time_const = 0.1
+	};
+
+	return lpf_dev;
+}
+
+/*
+ * @brief Configure filter time constant
+ * @param[in] LPF_t* lpf
+ * @param[in] float time_const
+ * @retval -
+ */
+void LPF_ConfigureTimeConst(LPF_t* lpf_dev, float time_const)
+{
+	lpf_dev->time_const = time_const;
 }

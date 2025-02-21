@@ -10,7 +10,7 @@
 
 #include <stdint.h>
 
-#define LPF_ALPHA 0.1
+#define PID_LPF_ALPHA 0.1
 /*
  * PID controller typedef
  */
@@ -29,14 +29,16 @@ typedef struct
 
 	uint32_t timestamp_us;
 
-	/* Selector: 0 = P, 1 = PI, 2 = PID (default) */
-	uint8_t selector;
+	/* Mode: 0 = P, 1 = PI, 2 = PID (default) */
+	uint8_t mode;
 }PID_t;
 
 /*
  * Prototypes
  */
-float PID_Compute(float setpoint, float input);
-void PID_ConfigureParams(float kp, float ki, float kd);
+PID_t PID_Init();
+float PID_Compute(PID_t* PID_dev, float setpoint, float input);
+void PID_ConfigureParams(PID_t* PID_dev, float kp, float ki, float kd);
+void PID_SetMode(PID_t* PID_dev, uint8_t mode);
 
 #endif /* INC_PID_H_ */

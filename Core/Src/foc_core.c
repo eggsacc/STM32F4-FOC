@@ -34,7 +34,7 @@ void OLVelocityControl(BLDCMotor* motor, float target_velocity)
 
 	/* Update virtual shaft angle, and calculate phase voltages */
 	motor->vars->shaft_angle = _normalizeAngle(motor->vars->shaft_angle + target_velocity * time_elapsed_s);
-	motor->dqVals->Uq = motor->voltage_limit;
+	motor->dq->Uq = motor->voltage_limit;
 	SetTorque(motor);
 
 	/* Update timestamp */
@@ -55,10 +55,16 @@ void CLPositionControl(BLDCMotor* motor, float target_pos)
 		return;
 	}
 
+	/* Sets the PID controller to P-mode */
+	if(motor->pid->mode != 0)
+	{
+		motor->pid->mode = 0;
+	}
+
 	/* Electrical angle calculated based on sensor angle * pole pairs */
 	motor->vars->shaft_angle = (float)(motor->sensor_dir * AS5600_ReadAngle(motor->sensor));
 	/* KP sets max torque when shaft is 45deg (0.7854 rad) off from target pos */
-	motor->dqVals->Uq = KP * (target_pos - (motor->sensor_dir * motor->vars->shaft_angle));
+	motor->dq->Uq = PID_Compute(motor->pid, target_pos, motor->sensor_dir * motor->vars->shaft_angle);
 	SetTorque(motor);
 }
 
@@ -70,9 +76,12 @@ void CLVelocityControl(BLDCMotor* motor, float target_velocity)
 		return;
 	}
 
-	float kp = 1;
+	if(motor->pid->mode != 1)
+	{
+		motor->pid->mode = 1;
+	}
 
-	motor->dqVals->Uq = kp * (target_velocity - LowPassFilter(AS5600_GetVelocity(motor->sensor)));
+	motor->dq->Uq = PID_Compute(motor->pid, target_velocity, LPF_Filter(motor->lpf, AS5600_GetVelocity(motor->sensor)));
 	motor->vars->shaft_angle = AS5600_ReadAngle(motor->sensor);
 	SetTorque(motor);
 }

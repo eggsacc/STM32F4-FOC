@@ -16,6 +16,8 @@
 #include "foc_utils.h"
 #include "AS5600.h"
 #include "timer_utils.h"
+#include "pid.h"
+#include "lpf.h"
 
 /*
  * @brief Starts PWM channels 1, 2, 3 of specified timer.
@@ -36,9 +38,45 @@ void PWM_Start_3_Channel(TIM_HandleTypeDef* timer)
 __STATIC_INLINE void SetPWM(BLDCMotor* motor)
 {
 	uint16_t ARR = motor->timer->Instance->ARR;
-	motor->timer->Instance->CCR1 = _constrain(motor->phaseVs->Ua / motor->supply_voltage, 0.0f, 1.0f) * ARR;
-	motor->timer->Instance->CCR2 = _constrain(motor->phaseVs->Ub / motor->supply_voltage, 0.0f, 1.0f) * ARR;
-	motor->timer->Instance->CCR3 = _constrain(motor->phaseVs->Uc / motor->supply_voltage, 0.0f, 1.0f) * ARR;
+	motor->timer->Instance->CCR1 = _constrain(motor->pv->Ua / motor->supply_voltage, 0.0f, 1.0f) * ARR;
+	motor->timer->Instance->CCR2 = _constrain(motor->pv->Ub / motor->supply_voltage, 0.0f, 1.0f) * ARR;
+	motor->timer->Instance->CCR3 = _constrain(motor->pv->Uc / motor->supply_voltage, 0.0f, 1.0f) * ARR;
+}
+
+/*
+ * @scope Static
+ * @brief Initializers for motor sub-structs
+ * @retval Struct_t struct
+ */
+static Var_t Var_t_Init()
+{
+	Var_t vars = {
+		.shaft_angle = 0,
+		.prev_us = 0
+	};
+
+	return vars;
+}
+
+static DQ_t DQ_t_Init()
+{
+	DQ_t dq = {
+		.Ud = 0,
+		.Uq = 0
+	};
+
+	return dq;
+}
+
+static PV_t PV_t_Init()
+{
+	PV_t pv = {
+		.Ua = 0,
+		.Ub = 0,
+		.Uc = 0
+	};
+
+	return pv;
 }
 
 /*
@@ -51,41 +89,32 @@ __STATIC_INLINE void SetPWM(BLDCMotor* motor)
  *
  * @note
  * - Sensor pointer is NULL by default (no sensor)
- * - BLDCMotor voltage limit set to supply voltage / 2 by default
+ * - BLDCMotor voltage is set to 12V bu default.
+ * - Voltage limit is 3V by default.
  *
  * @retval BLDCMotor motor
  */
-void MotorInit(BLDCMotor* motor, TIM_HandleTypeDef* timer, float supply_voltage, uint8_t pole_pairs)
+void BLDCMotor_Init(BLDCMotor* motor, Var_t* var, DQ_t* dq, PV_t* pv, PID_t* pid, LPF_t* lpf, TIM_HandleTypeDef* timer, uint8_t pole_pairs)
 {
-	/* Create & initialize structs */
-	static Var_t motor_vars = {
-			.shaft_angle = 0,
-			.prev_us = 0
-	};
-
-	static DQval_t motor_dq = {
-			.Ud = 0,
-			.Uq = 0
-	};
-	static PhaseV_t motor_pv = {
-			.Ua = 0,
-			.Ub = 0,
-			.Uc = 0
-	};
-
-	/* Timer utility init */
-	DWT_Init();
+	/* De-reference & initialize sub-structs */
+	*var = Var_t_Init();
+	*dq = DQ_t_Init();
+	*pv = PV_t_Init();
+	*pid = PID_Init();
+	*lpf = LPF_Init();
 
 	/* BLDCMotor struct initialization */
-	motor->dqVals = &motor_dq;
-	motor->phaseVs = &motor_pv;
-	motor->vars = &motor_vars;
+	motor->vars = var;
+	motor->dq = dq;
+	motor->pv = pv;
 	motor->sensor = NULL;
 	motor->timer = timer;
+	motor->pid = pid;
+	motor->lpf = lpf;
 	motor->sensor_dir = 1;
 	motor->pole_pairs = pole_pairs;
-	motor->supply_voltage = supply_voltage;
-	motor->voltage_limit = supply_voltage / 3;
+	motor->supply_voltage = 12;
+	motor->voltage_limit = 3;
 }
 
 /*
@@ -95,18 +124,18 @@ void MotorInit(BLDCMotor* motor, TIM_HandleTypeDef* timer, float supply_voltage,
  */
 void SetTorque(BLDCMotor* motor) {
 	/* Constrain Uq to within voltage range */
-	motor->dqVals->Uq = _constrain(motor->dqVals->Uq, -motor->voltage_limit, motor->voltage_limit);
+	motor->dq->Uq = _constrain(motor->dq->Uq, -motor->voltage_limit, motor->voltage_limit);
     /* Normalize electric angle */
     float el_angle = _normalizeAngle(_electricalAngle(motor->vars->shaft_angle, motor->pole_pairs));
 
 	/* Inverse park transform */
-	float Ualpha = -(motor->dqVals->Uq) * _sin(el_angle);
-	float Ubeta = motor->dqVals->Uq * _cos(el_angle);
+	float Ualpha = -(motor->dq->Uq) * _sin(el_angle);
+	float Ubeta = motor->dq->Uq * _cos(el_angle);
 
 	/* Inverse Clarke transform */
-	motor->phaseVs->Ua = Ualpha + motor->supply_voltage / 2.0f;
-	motor->phaseVs->Ub = (_SQRT3 * Ubeta - Ualpha) / 2.0f + motor->supply_voltage / 2.0f;
-	motor->phaseVs->Uc = (- Ualpha - _SQRT3 * Ubeta) / 2.0f + motor->supply_voltage / 2.0f;
+	motor->pv->Ua = Ualpha + motor->supply_voltage / 2.0f;
+	motor->pv->Ub = (_SQRT3 * Ubeta - Ualpha) / 2.0f + motor->supply_voltage / 2.0f;
+	motor->pv->Uc = (- Ualpha - _SQRT3 * Ubeta) / 2.0f + motor->supply_voltage / 2.0f;
 
 	SetPWM(motor);
 }
@@ -130,12 +159,12 @@ void LinkSensor(BLDCMotor* motor, AS5600* sensor, I2C_HandleTypeDef *i2c_handle)
 
 	motor->sensor = sensor;
 
-	motor->dqVals->Uq = motor->voltage_limit / 2;
+	motor->dq->Uq = motor->voltage_limit / 2;
 	motor->vars->shaft_angle = _PI_2;
 	SetTorque(motor);
 	HAL_Delay(1500);
 	AS5600_ZeroAngle(sensor);
-	motor->dqVals->Uq = 0;
+	motor->dq->Uq = 0;
 	motor->vars->shaft_angle = 0;
 	SetTorque(motor);
 }
@@ -159,7 +188,7 @@ void BLDC_AutoCalibrate(BLDCMotor* motor)
 	float total = 0;
 
 	/* Set some current & electrical angle to 0 */
-	motor->dqVals->Uq = motor->supply_voltage / 3;
+	motor->dq->Uq = motor->supply_voltage / 3;
 	motor->pole_pairs = 1;
 	motor->vars->shaft_angle = 0;
 	SetTorque(motor);
@@ -210,7 +239,7 @@ void BLDC_AutoCalibrate(BLDCMotor* motor)
 	AS5600_ZeroAngle(motor->sensor);
 
 	/* Set 0 torque */
-	motor->dqVals->Uq = 0;
+	motor->dq->Uq = 0;
 	SetTorque(motor);
 }
 

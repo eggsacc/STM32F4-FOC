@@ -21,6 +21,9 @@
 
 *****************************************************************************************************************************************************************************
 
+PLEASE FIX NOW
+- nothing!! :)
+    
 HIGH PRIO
 - Learn interrupts, attach interrupt to serial rx callback.
 - Implement serial commander function.
@@ -104,13 +107,30 @@ LOW PRIO
 - FOUND THE PROBLEM WITH OPEN LOOP VELOCITY ISSUE :: THE PREVIOUS TIMESTAMP SHOULD NOT BE UPDATED USING MICROS()!!
 - Since I was calling micros() and updating the previous angle at the end of the loop, the time step between function calls are erroneously small & hence 
   caused the super slow rotations.
+- Implemented low pass filter library
+- Implemented PID library with configurable modes (P, PI, PID)
 
+21/2/25
+- Huge mistake, GG. Gotto rethink the entire motor initialization function to see if we should just substitute with a macro instead.
+- Thanks chatgpt. You are a real one for catching this mistake. Please spare me when you take over the world one day. I swear im smarter than this
+- Huge improvements all around today. Fixed the major issue of struct initialization.
+- A macro now handles the creation of all the sub-struct on the stack in main() AND calling the init function with the proper params.
+- Tested PID controller, Low pass filter etc, I think it all works :)
+- Renamed some structs to unify naming scheme & reduce redundant names
+- Right now the control loop is already running at only around 1kHz. Is that good? Feels like alot of things could probably be optimised.
+- Super proud of the progress today!!!
 
 *****************************************************************************************************************************************************************************
 
                                                                              THINGS LEARNT
 
 *****************************************************************************************************************************************************************************
+21/2/25:
+- Don't create static structs for initialization functions that should initialize different instances of something...
+  Those static structs will just persist throughout init calls & make everything share the same params.
+- Don't try to be cool and use underscores or double underscores when naming stuff. These naming conventions are reserved in the global scope for the implementation.
+- As in, alot of system-based functions & variables are prefixed with single or double underscores. Using them in your code might cause conflicts.
+
 19/2/25:
 - Don't update the previous timestamp at the end of the loop - all the time elapsed within the loop will be deducted which leads to a really small time difference across calls.\
 - If we include library "A" in main.c, which already includes libraries "B" and "C", all prototypes in libraries "B" and "C" are also accessible in main.c.

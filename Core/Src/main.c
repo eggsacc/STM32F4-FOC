@@ -50,9 +50,7 @@ TIM_HandleTypeDef htim3;
 UART_HandleTypeDef huart1;
 
 /* USER CODE BEGIN PV */
-float Ua;
-float Ub;
-float Uc;
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -69,7 +67,7 @@ static void MX_USART1_UART_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-
+float freq = 0;
 /* USER CODE END 0 */
 
 /**
@@ -110,18 +108,20 @@ int main(void)
   /* Start PWM channels */
   PWM_Start_3_Channel(&htim2);
 
+  DWT_Init();
   /* Create sensor & motor object */
   AS5600 s1;
   BLDCMotor m1;
 
   /* Init motor object */
-  MotorInit(&m1, &htim2, 12, 7);
+  BLDC_Init(m1, htim2, 7);
 
   /* Attach sensor to motor object & initialize */
   LinkSensor(&m1, &s1, &hi2c1);
 
   /* USB tx buffer */
-  uint8_t tx_buff[128];
+  //uint8_t tx_buff[128];
+  uint32_t prev_us = 0;
 
   /* USER CODE END 2 */
 
@@ -134,7 +134,10 @@ int main(void)
     /* USER CODE BEGIN 3 */
 	  //CLPositionControl(&m1, 2.0);
 	  //OLVelocityControl(&m1, 10);
+	  uint32_t now_us = micros();
 	  CLVelocityControl(&m1, 6);
+	  freq = 1 / ((now_us - prev_us) * 0.000001f);
+	  prev_us = now_us;
 	  //sprintf(tx_buff, ">Reading:%d\n\r", (int)(AS5600_GetVelocity(&s1) * 1000));
 	  //CDC_Transmit_FS(tx_buff, strlen((const char*)tx_buff));
 

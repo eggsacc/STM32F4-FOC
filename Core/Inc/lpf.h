@@ -10,11 +10,20 @@
 
 #include <stdint.h>
 
-#define TIME_CONSTANT 0.1
+/*
+ * LPF struct
+ */
+typedef struct
+{
+	float time_const;
+	float prev_data;
+	uint32_t prev_us;
+}LPF_t;
 
 /*
  * Fucntions
  */
-float LowPassFilter(float x);
+float LPF_Filter(LPF_t* lpf, float x);
+LPF_t LPF_Init();
 
 #endif /* INC_LPF_H_ */

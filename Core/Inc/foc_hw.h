@@ -13,10 +13,24 @@
  */
 #include "foc_utils.h"
 #include "AS5600.h"
+#include "pid.h"
+#include "lpf.h"
 #include "stm32f4xx_hal.h"
 #include "stm32f4xx_hal_tim.h"
 #include "stm32f411xe.h"
 #include "timer_utils.h"
+
+#define BLDC_Init(m, timer, pole_pairs) \
+	Var_t m##_var;																							\
+	DQ_t m##_dq;																							\
+	PV_t m##_pv;\
+	PID_t m##_pid;\
+	LPF_t m##_lpf;\
+	BLDCMotor_Init(&(m), &(m##_var), &(m##_dq), &(m##_pv), &(m##_pid), &(m##_lpf), &(timer), (pole_pairs))\
+
+
+
+
 
 /*
  * Typedef structures
@@ -37,14 +51,14 @@ typedef struct
 {
 	float Uq;
 	float Ud;
-} DQval_t;
+} DQ_t;
 
 typedef struct
 {
 	float Ua;
 	float Ub;
 	float Uc;
-} PhaseV_t;
+} PV_t;
 
 typedef struct
 {
@@ -56,17 +70,19 @@ typedef struct
 
 	/* Pointers to structs */
 	Var_t* vars;
-	DQval_t* dqVals;
-	PhaseV_t* phaseVs;
+	DQ_t* dq;
+	PV_t* pv;
 	AS5600* sensor;
 	TIM_HandleTypeDef* timer;
+	PID_t* pid;
+	LPF_t* lpf;
 } BLDCMotor;
 
 /*
  * Public functions
  */
 void PWM_Start_3_Channel(TIM_HandleTypeDef* timer);
-void MotorInit(BLDCMotor* motor, TIM_HandleTypeDef* timer, float supply_voltage, uint8_t pole_pairs);
+void BLDCMotor_Init(BLDCMotor* motor, Var_t* var, DQ_t* dq, PV_t* pv, PID_t* pid, LPF_t* lpf, TIM_HandleTypeDef* timer, uint8_t pole_pairs);
 void LinkSensor(BLDCMotor* motor, AS5600* sensor, I2C_HandleTypeDef *i2c_handle);
 void BLDC_AutoCalibrate(BLDCMotor* motor);
 void MotorDebug(BLDCMotor* motor);

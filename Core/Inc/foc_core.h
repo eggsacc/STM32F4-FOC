@@ -9,10 +9,6 @@
 #define INC_FOC_CORE_H_
 
 #include "foc_hw.h"
-/*
- * Constants
- */
-#define KP 3 //7.639437268
 
 /*
  * Control functions
