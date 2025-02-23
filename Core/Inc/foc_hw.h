@@ -11,10 +11,10 @@
 /*
  * Includes
  */
+#include <low_pass_filter.h>
 #include "foc_utils.h"
 #include "AS5600.h"
 #include "pid.h"
-#include "lpf.h"
 #include "stm32f4xx_hal.h"
 #include "stm32f4xx_hal_tim.h"
 #include "stm32f411xe.h"
@@ -60,6 +60,13 @@ typedef struct
 	float Uc;
 } PV_t;
 
+typedef enum
+{
+	open_loop_vel,
+	closed_loop_pos,
+	closed_loop_vel,
+
+}Ctrl_t;
 typedef struct
 {
 	/* Variables */

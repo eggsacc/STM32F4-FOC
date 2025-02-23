@@ -25,62 +25,52 @@ PLEASE FIX NOW
 - nothing!! :)
     
 HIGH PRIO
-- Learn interrupts, attach interrupt to serial rx callback.
-- Implement serial commander function.
-- Learn how to use swd printf() - https://www.youtube.com/watch?v=sPzQ5CniWtw
+- Current sense library
+- Serial commander support 2 motors
+- Figure out how to link serial commander input data to motor controls
 
 LOW PRIO
 - Implement time check for function calls to run everything at ~1kHz
+- Use DMA for stuf like UART
 *****************************************************************************************************************************************************************************
 
                                                                                 UPDATES
 
 *****************************************************************************************************************************************************************************
-20/1/25:
-- Removed macros to set up motor structs; replaced with a function creating static structs on the stack.
-- Motor & sensor object has to be manually created now, in main().
+23/2/25
+- Set up a serial commander interface using UART. The serial commander uses the ReceiveToIdle interrupt: When the processor detects that the data line 
+  has become idle, it fires the interrupt & I use the callback function to set a data in flag.
+- The main SerialCommander_EventUpdate() function looks for the flag and parses the data stored in the buffer if it is set.
+- But how do I use this data to actually control the motor?
+- Also, I think it's probably better to just setup 2 different functions for m0 and m1. Right now only 1 motor could be attached to the serial commander.
+- Set up 12-bit ADCs in IOC for current sensing
 
-23/1/25:
-- Updates naming of stucts to end with _t
-- Added ReadRawAngle & ReadNormalizedAngle to AS5600.h
-- Started on close loop position control function
+21/2/25
+- Huge mistake, GG. Gotto rethink the entire motor initialization function to see if we should just substitute with a macro instead.
+- Thanks chatgpt. You are a real one for catching this mistake. Please spare me when you take over the world one day. I swear im smarter than this
+- Huge improvements all around today. Fixed the major issue of struct initialization.
+- A macro now handles the creation of all the sub-struct on the stack in main() AND calling the init function with the proper params.
+- Tested PID controller, Low pass filter etc, I think it all works :)
+- Renamed some structs to unify naming scheme & reduce redundant names
+- Right now the control loop is already running at only around 1kHz. Is that good? Feels like alot of things could probably be optimised.
+- Super proud of the progress today!!!
 
-25/1/25
-- Renamed motor struct back to Motor (instead of Motor_t)
-- Renamed SetPhaseVoltages to SetTorque
-- Finished close loop position control function, yet to test
+19/2/25
+- Seperated motor hardware initialization functions & control functions into foc_hw.h and foc_core.h respectively
+- Disabled USBD for now; not really useful i think
+- Added a AS5600_GetVelocity() function to the AS5600 library (also uses DWT timer; remember to initialize!)
+- FOUND THE PROBLEM WITH OPEN LOOP VELOCITY ISSUE :: THE PREVIOUS TIMESTAMP SHOULD NOT BE UPDATED USING MICROS()!!
+- Since I was calling micros() and updating the previous angle at the end of the loop, the time step between function calls are erroneously small & hence 
+  caused the super slow rotations.
+- Implemented low pass filter library
+- Implemented PID library with configurable modes (P, PI, PID)
 
-1/2/25
-- PWM problem? Motor jiterry motion, and changing PWM duty cycle seems to have a pretty significant effect.
-- Lower PWM frequency by setting prescalar.
-
-5/2/25
-- New PWM freq: 72Mhz / 256 / 8 = 35kHz (approx)
-
-9/2/25
-- Removed Kv parameter from Motor struct
-- Tried to implement an auto calibrate function to find the pole pairs & sensor direction automatically
-- I have no fucking idea what the problem is, but seems like the I2C dosn't work??
-- Trying to print the encoder values just causes the program to freeze
-- And this fucking cheap-ass stm32 board can't be debugged!!!!!
-
-14/2/25
-- New STM32F411CEU6 is here!! And it fuking works!!
-- Ported libraries over to new project (can't seem to find a way to update the target MCU in previous project)
-- This chip runs at 96MHz & has USB DFU! Also no more fuking annoying boot-pin jumpers
-- Tested AS5600 I2C read, seems to work fine.
-
-15/2/25
-- Don't forget to call DWT_Init() !!! If timer not initialized, the micros() function does nothing.
-- Open loop velocity control seems to have some bugs... Maybe the angle generation has some issues?
-- High pitch squeaking noise at lower rpms
-- Adjust PWM prescalar & try?
-- Unified sensor & motor initialization method: Both structs to be created then passed into initialization functions
-- Messing with AutoCalibration lead to the discovery of some bugs with AS5600 sensor library! The ZeroAngle() function does not set the 
-  previous_angle to 0, so the reading after zeroing was, in fact, not 0. lol
-- Also forgot to take the absolute of mechanical angle delta. Which cause the pole pair calculations to be negative sometimes.
-- Maybe make the auto-calibration procedure take multiple repeated sensor readings to approximate the pole pairs instead of just 1? Also the 
-  calculation of pole pair number could be more graceful, such as adding a rounding function instead of just truncating by typecasting.
+18/2/25
+- Changed resolution of PWM to a weird 9-bit
+- Perhaps some miracle just happened, but the stutters mentioned previously seems to have fixed itself
+- The code works... but why?
+- Also, when debugging, it seems like the velocity open loop control actually runs every 5 microseconds = 200kHz. Which is mad impressive.
+- The open loop velocity calculations definitely has some issues. But idk what or where. The motor rotates wayyy slower than expected.
 
 17/2/25
 - Removed electrical angle parameter from var_t struct. Don't think its that useful
@@ -93,32 +83,52 @@ LOW PRIO
 - Weird problem where the motor stutters ALOT and just freaks out at certain angles. howcome?
 - Changed PWM to central-aligned mode, hopefully it's better.
 
-18/2/25
-- Changed resolution of PWM to a weird 9-bit
-- Perhaps some miracle just happened, but the stutters mentioned previously seems to have fixed itself
-- The code works... but why?
-- Also, when debugging, it seems like the velocity open loop control actually runs every 5 microseconds = 200kHz. Which is mad impressive.
-- The open loop velocity calculations definitely has some issues. But idk what or where. The motor rotates wayyy slower than expected.
+15/2/25
+- Don't forget to call DWT_Init() !!! If timer not initialized, the micros() function does nothing.
+- Open loop velocity control seems to have some bugs... Maybe the angle generation has some issues?
+- High pitch squeaking noise at lower rpms
+- Adjust PWM prescalar & try?
+- Unified sensor & motor initialization method: Both structs to be created then passed into initialization functions
+- Messing with AutoCalibration lead to the discovery of some bugs with AS5600 sensor library! The ZeroAngle() function does not set the 
+  previous_angle to 0, so the reading after zeroing was, in fact, not 0. lol
+- Also forgot to take the absolute of mechanical angle delta. Which cause the pole pair calculations to be negative sometimes.
+- Maybe make the auto-calibration procedure take multiple repeated sensor readings to approximate the pole pairs instead of just 1? Also the 
+  calculation of pole pair number could be more graceful, such as adding a rounding function instead of just truncating by typecasting.
+  
+14/2/25
+- New STM32F411CEU6 is here!! And it fuking works!!
+- Ported libraries over to new project (can't seem to find a way to update the target MCU in previous project)
+- This chip runs at 96MHz & has USB DFU! Also no more fuking annoying boot-pin jumpers
+- Tested AS5600 I2C read, seems to work fine.
 
-19/2/25
-- Seperated motor hardware initialization functions & control functions into foc_hw.h and foc_core.h respectively
-- Disabled USBD for now; not really useful i think
-- Added a AS5600_GetVelocity() function to the AS5600 library (also uses DWT timer; remember to initialize!)
-- FOUND THE PROBLEM WITH OPEN LOOP VELOCITY ISSUE :: THE PREVIOUS TIMESTAMP SHOULD NOT BE UPDATED USING MICROS()!!
-- Since I was calling micros() and updating the previous angle at the end of the loop, the time step between function calls are erroneously small & hence 
-  caused the super slow rotations.
-- Implemented low pass filter library
-- Implemented PID library with configurable modes (P, PI, PID)
+9/2/25
+- Removed Kv parameter from Motor struct
+- Tried to implement an auto calibrate function to find the pole pairs & sensor direction automatically
+- I have no fucking idea what the problem is, but seems like the I2C dosn't work??
+- Trying to print the encoder values just causes the program to freeze
+- And this fucking cheap-ass stm32 board can't be debugged!!!!!
 
-21/2/25
-- Huge mistake, GG. Gotto rethink the entire motor initialization function to see if we should just substitute with a macro instead.
-- Thanks chatgpt. You are a real one for catching this mistake. Please spare me when you take over the world one day. I swear im smarter than this
-- Huge improvements all around today. Fixed the major issue of struct initialization.
-- A macro now handles the creation of all the sub-struct on the stack in main() AND calling the init function with the proper params.
-- Tested PID controller, Low pass filter etc, I think it all works :)
-- Renamed some structs to unify naming scheme & reduce redundant names
-- Right now the control loop is already running at only around 1kHz. Is that good? Feels like alot of things could probably be optimised.
-- Super proud of the progress today!!!
+5/2/25
+- New PWM freq: 72Mhz / 256 / 8 = 35kHz (approx)
+
+1/2/25
+- PWM problem? Motor jiterry motion, and changing PWM duty cycle seems to have a pretty significant effect.
+- Lower PWM frequency by setting prescalar.
+
+25/1/25
+- Renamed motor struct back to Motor (instead of Motor_t)
+- Renamed SetPhaseVoltages to SetTorque
+- Finished close loop position control function, yet to test
+
+23/1/25:
+- Updates naming of stucts to end with _t
+- Added ReadRawAngle & ReadNormalizedAngle to AS5600.h
+- Started on close loop position control function
+
+20/1/25:
+- Removed macros to set up motor structs; replaced with a function creating static structs on the stack.
+- Motor & sensor object has to be manually created now, in main().
+
 
 *****************************************************************************************************************************************************************************
 
@@ -167,6 +177,8 @@ LOW PRIO
 
 *****************************************************************************************************************************************************************************
 
+### PWM Timers ###
+
 A0    TIM2_CH1
 A1    TIM2_CH2
 A2    TIM2_CH3
@@ -175,13 +187,25 @@ A6    TIM3_CH1
 A7    TIM3_CH2
 B0    TIM3_CH3
 
+### I2C/UART ###
+
 B6    SCL_1
 B7    SDA_1
 
 B10   SCL_2
 B3    SDA_2
 
+A10 USART1_RX 
+A09 USART1_TX
+
+### IO ###
+
 C13   GPIO_OUT (LED)
 
-PWM frequency: 96MHz / 256(8-bit) / 10 (prescalar) = 37.5kHz 
+A0  ADC1_IN 0
+A1  ADC1_IN 1
+A3  ADC1_IN 3
+A4  ADC1_IN 4
+
+
 

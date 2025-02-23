@@ -8,6 +8,7 @@
 /*
  * Includes
  */
+#include <low_pass_filter.h>
 #include "main.h"
 #include "foc_hw.h"
 #include <math.h>
@@ -17,7 +18,6 @@
 #include "AS5600.h"
 #include "timer_utils.h"
 #include "pid.h"
-#include "lpf.h"
 
 /*
  * @brief Starts PWM channels 1, 2, 3 of specified timer.
