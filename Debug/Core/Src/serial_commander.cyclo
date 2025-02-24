@@ -1,4 +1,0 @@
-../Core/Src/serial_commander.c:28:6:SerialCommander_Init	1
-../Core/Src/serial_commander.c:39:6:HAL_UARTEx_RxEventCallback	2
-../Core/Src/serial_commander.c:61:6:Serial_Print	1
-../Core/Src/serial_commander.c:71:6:SerialCommander_EventUpdate	5
