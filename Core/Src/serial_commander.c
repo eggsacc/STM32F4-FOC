@@ -25,7 +25,7 @@ static uint8_t rx_flag = 0;
  * @param[in] UART handle
  * @retval -
  */
-void SerialCommander_Init(BLDCMotor* motor, UART_HandleTypeDef* huart)
+__INLINE void SerialCommander_Init(BLDCMotor* motor, UART_HandleTypeDef* huart)
 {
 	uart_dev = huart;
 	bldc_dev = motor;

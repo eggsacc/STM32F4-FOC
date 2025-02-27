@@ -29,9 +29,6 @@
 	BLDCMotor_Init(&(m), &(m##_var), &(m##_dq), &(m##_pv), &(m##_pid), &(m##_lpf), &(timer), (pole_pairs))\
 
 
-
-
-
 /*
  * Typedef structures
  *

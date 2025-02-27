@@ -11,7 +11,7 @@
 #include "main.h"
 #include "foc_core.h"
 
-__INLINE void Serial_Print(const char* s);
+void Serial_Print(const char* s);
 void SerialCommander_EventUpdate();
 void SerialCommander_Init(BLDCMotor* motor, UART_HandleTypeDef* huart);
 

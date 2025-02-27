@@ -25,6 +25,8 @@ PLEASE FIX NOW
 - nothing!! :)
     
 HIGH PRIO
+- Fixed point library
+- Make library optimised for 2 motors only
 - Current sense library
 - Serial commander support 2 motors
 - Figure out how to link serial commander input data to motor controls
@@ -37,6 +39,14 @@ LOW PRIO
                                                                                 UPDATES
 
 *****************************************************************************************************************************************************************************
+27/2/25
+- Starting to think that it's probably better if the library is just optimised for 2 motors, instead of abstracting it for any number of motors. Who is even gonna control 
+  so many motors simultaneously.
+- Chatgpt just told me that SimpleFOC runs at 10kHz. That is insane. How is my program running on a much more capable microcontroller only reaching 1kHz??
+- Implemented a very basic fixed point arithmetics library. Kudos to https://github.com/PetteriAimonen/libfixmath/blob/master/libfixmath/fix16.h
+- Realized that fixed points multiplications are exceptionally prone to overflowing, and the max square it can calculate is only +-127 * +-127.
+- It's quite interesting though. Uses a ton of bitwise tricks to perform those calculations extremely fast.
+
 23/2/25
 - Set up a serial commander interface using UART. The serial commander uses the ReceiveToIdle interrupt: When the processor detects that the data line 
   has become idle, it fires the interrupt & I use the callback function to set a data in flag.
@@ -135,6 +145,10 @@ LOW PRIO
                                                                              THINGS LEARNT
 
 *****************************************************************************************************************************************************************************
+27/2/25:
+- Macros are useful, but should be replaced with inlined functions if type checking is important. Macros are purely text substitution & may prove quite difficult to debug
+- The int type on an Arduino is 16-bit by default, not 32-bit. Multiplying any value by (1 << 16) causes it to be multiplied by 0 since it overflows.
+
 21/2/25:
 - Don't create static structs for initialization functions that should initialize different instances of something...
   Those static structs will just persist throughout init calls & make everything share the same params.
