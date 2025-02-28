@@ -1,5 +1,0 @@
-../Core/Inc/foc_utils.h:70:25:_normalizeAngle	24	static
-../Core/Inc/timer_utils.h:34:26:micros	4	static
-../Core/Src/foc_core.c:19:6:OLVelocityControl	40	static
-../Core/Src/foc_core.c:51:6:CLPositionControl	32	static
-../Core/Src/foc_core.c:80:6:CLVelocityControl	24	static

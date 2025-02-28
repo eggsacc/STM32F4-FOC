@@ -1,4 +1,0 @@
-../Core/Inc/timer_utils.h:34:26:micros	4	static
-../Core/Src/low_pass_filter.c:17:7:LPF_Compute	32	static
-../Core/Src/low_pass_filter.c:49:7:LPF_Init	32	static
-../Core/Src/low_pass_filter.c:66:6:LPF_ConfigureTimeConst	16	static
