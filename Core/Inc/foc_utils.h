@@ -12,11 +12,19 @@
  * Includes
  */
 #include "stm32f4xx_hal.h"
+#include "fix16.h"
 #include <math.h>
 
 /*
  * Constants definition
  */
+#define SINELUT_WIDTH_BITS 8
+#define SINELUT_WIDTH 256
+#define SINELUT_WIDTH_HALF 128
+#define SINELUT_QUAD_1 64
+#define SINELUT_QUAD_2 128
+#define SINELUT_QUAD_3 192
+
 #define _2_SQRT3 1.15470053838f
 #define _SQRT3 1.73205080757f
 #define _1_SQRT3 0.57735026919f
@@ -41,16 +49,16 @@
 /*
  * Trig approximation functions using look-up table
  */
-float _sin(float angle);
+fix16_t _sin(fix16_t angle);
 
 /*
  * @brief Cosine approximation
  * @param[in] angle(radians)
  * @return cos(angle)
  */
-__STATIC_INLINE float _cos(float angle) {
-  float _angle = angle + _PI_2;
-  _angle = _angle > _2PI ? _angle - _2PI : _angle;
+__STATIC_INLINE fix16_t _cos(fix16_t angle) {
+  fix16_t _angle = angle + FIX16_PI_2;
+  _angle = _angle > FIX16_2PI ? _angle - FIX16_2PI : _angle;
   return _sin(_angle);
 }
 
@@ -59,9 +67,9 @@ __STATIC_INLINE float _cos(float angle) {
  * @param[in] angle(radians)
  * @return normalized_angle
  */
-__STATIC_INLINE float _normalizeAngle(float angle){
+__STATIC_INLINE fix16_t _normalizeAngle(float angle){
   float a = fmod(angle, _2PI);       // fmod(x,y) returns remainder of x/y
-  return a >= 0 ? a : (a + _2PI);    // add 2pi to negative angles to make positive
+  return a >= 0 ? float_to_fix16(a) : (float_to_fix16(a) + FIX16_2PI);    // add 2pi to negative angles to make positive
 }
 
 /*
@@ -70,8 +78,8 @@ __STATIC_INLINE float _normalizeAngle(float angle){
  * @param[in] pole_pairs
  * @return electrical angle
  */
-__STATIC_INLINE float _electricalAngle(float shaft_angle, uint8_t pole_pairs){
-  return (shaft_angle * pole_pairs);
+__STATIC_INLINE fix16_t _electricalAngle(fix16_t shaft_angle, uint8_t pole_pairs){
+  return (fix16_mul(shaft_angle, (fix16_t)pole_pairs));
 }
 
 /*

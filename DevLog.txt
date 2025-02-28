@@ -39,6 +39,14 @@ LOW PRIO
                                                                                 UPDATES
 
 *****************************************************************************************************************************************************************************
+28/2/25
+- Implemented Q16.16 for sine approximations. Works pretty well! Running a test calculating the sine values for [0, 2pi] with a 0.01 step resolution (628 calculations) yields 
+  the following results: sin() -> 17629us, _sin() -> 4977us. About a 3.5x improvement in performance.
+- Absolute mind fck trying to debug all those binary operations tho. 
+- And now I have to implement this in all the other libraries...
+- Remember, the trig approximation functions accepts a fix16_t, NOT FLOATS. And returns a fix16_t too.
+- Also, chatgpt is legit quite stupid sometimes. Today was one of those rare occasions where I am the one pointing out issues in his code.
+
 27/2/25
 - Starting to think that it's probably better if the library is just optimised for 2 motors, instead of abstracting it for any number of motors. Who is even gonna control 
   so many motors simultaneously.
@@ -145,6 +153,10 @@ LOW PRIO
                                                                              THINGS LEARNT
 
 *****************************************************************************************************************************************************************************
+28/2/25:
+- Dividing by powers of 2 and multiplying by powers of 2 are equal to just bit-shifting by the power, but for floats some precision is lost by bit-shifting.
+- ChatGPT actually makes some pretty retarded mistakes sometimes, even in things that its supposed to be super good at. So just double check with own logic next time.
+
 27/2/25:
 - Macros are useful, but should be replaced with inlined functions if type checking is important. Macros are purely text substitution & may prove quite difficult to debug
 - The int type on an Arduino is 16-bit by default, not 32-bit. Multiplying any value by (1 << 16) causes it to be multiplied by 0 since it overflows.

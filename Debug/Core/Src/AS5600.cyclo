@@ -1,0 +1,8 @@
+../Core/Inc/timer_utils.h:34:26:micros	1
+../Core/Src/AS5600.c:14:26:AS5600_ReadRegister	1
+../Core/Src/AS5600.c:19:26:AS5600_ReadRegisters	1
+../Core/Src/AS5600.c:37:6:AS5600_ZeroAngle	1
+../Core/Src/AS5600.c:47:9:AS5600_Init	3
+../Core/Src/AS5600.c:93:7:AS5600_ReadAngle	3
+../Core/Src/AS5600.c:120:10:AS5600_ReadRawAngle	2
+../Core/Src/AS5600.c:139:7:AS5600_GetVelocity	2

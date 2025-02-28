@@ -19,6 +19,7 @@
 #include "stm32f4xx_hal_tim.h"
 #include "stm32f411xe.h"
 #include "timer_utils.h"
+#include "fix16.h"
 
 #define BLDC_Init(m, timer, pole_pairs) \
 	Var_t m##_var;																							\
@@ -40,7 +41,7 @@
  */
 typedef struct
 {
-	float shaft_angle;
+	fix16_t shaft_angle;
 	uint32_t prev_us;
 } Var_t;
 
@@ -62,15 +63,15 @@ typedef enum
 	open_loop_vel,
 	closed_loop_pos,
 	closed_loop_vel,
-
 }Ctrl_t;
+
 typedef struct
 {
 	/* Variables */
 	int8_t sensor_dir;
 	uint8_t pole_pairs;
-	float voltage_limit;
-	float supply_voltage;
+	fix16_t voltage_limit;
+	fix16_t supply_voltage;
 
 	/* Pointers to structs */
 	Var_t* vars;

@@ -130,6 +130,22 @@ int main(void)
   LinkSensor(&m1, &s1, &hi2c1);
 
   SerialCommander_Init(&m1, &huart1);
+  uint32_t sin_time = 0;
+  uint32_t _sin_time = 0;
+  uint8_t tx_buff[128];
+
+//  Serial_Print("########## Test ############\n");
+//  volatile float accum = 0;
+//  sin_time = micros();
+//  for(float i = 0; i < 6.283; i += 0.02)
+//  {
+//	  accum += sin(i);
+//  }
+//  _sin_time = micros();
+//
+//  sprintf(tx_buff, "sin time: %d, result: %f\n", _sin_time - sin_time, accum);
+//  Serial_Print(&tx_buff);
+//  HAL_Delay(50);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -142,13 +158,8 @@ int main(void)
 	  //CLPositionControl(&m1, 2.0);
 	  //OLVelocityControl(&m1, 10);
 	  //CLVelocityControl(&m1, 6);
-	  SerialCommander_EventUpdate();
+	  //SerialCommander_EventUpdate();
 	  //HAL_Delay(500);
-
-
-
-	  //sprintf(tx_buff, "%d, %d, %d\n", (int)(m1.phaseVs->Ua * 1000),(int)(m1.phaseVs->Ub * 1000),(int)(m1.phaseVs->Uc * 1000));
-	  //CDC_Transmit_FS(tx_buff, strlen((const char*)tx_buff));
   }
   /* USER CODE END 3 */
 }
