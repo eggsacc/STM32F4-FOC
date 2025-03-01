@@ -37,10 +37,10 @@ void PWM_Start_3_Channel(TIM_HandleTypeDef* timer)
  */
 __STATIC_INLINE void SetPWM(BLDCMotor* motor)
 {
-	uint16_t ARR = motor->timer->Instance->ARR;
-	motor->timer->Instance->CCR1 = _constrain(motor->pv->Ua / motor->supply_voltage, 0.0f, 1.0f) * ARR;
-	motor->timer->Instance->CCR2 = _constrain(motor->pv->Ub / motor->supply_voltage, 0.0f, 1.0f) * ARR;
-	motor->timer->Instance->CCR3 = _constrain(motor->pv->Uc / motor->supply_voltage, 0.0f, 1.0f) * ARR;
+	fix16_t ARR = int_to_fix16(motor->timer->Instance->ARR);
+	motor->timer->Instance->CCR1 = fix16_to_int(fix16_mul(fix16_div(motor->pv->Ua, motor->supply_voltage), ARR));
+	motor->timer->Instance->CCR2 = fix16_to_int(fix16_mul(fix16_div(motor->pv->Ub, motor->supply_voltage), ARR));
+	motor->timer->Instance->CCR3 = fix16_to_int(fix16_mul(fix16_div(motor->pv->Uc, motor->supply_voltage), ARR));
 }
 
 /*
@@ -113,8 +113,8 @@ void BLDCMotor_Init(BLDCMotor* motor, Var_t* var, DQ_t* dq, PV_t* pv, PID_t* pid
 	motor->lpf = lpf;
 	motor->sensor_dir = 1;
 	motor->pole_pairs = pole_pairs;
-	motor->supply_voltage = 12;
-	motor->voltage_limit = 3;
+	motor->supply_voltage = int_to_fix16(12);
+	motor->voltage_limit = int_to_fix16(3);
 }
 
 /*
@@ -126,7 +126,8 @@ void SetTorque(BLDCMotor* motor) {
 	/* Constrain Uq to within voltage range */
 	motor->dq->Uq = _constrain(motor->dq->Uq, -motor->voltage_limit, motor->voltage_limit);
     /* Normalize electric angle */
-    float el_angle = _normalizeAngle(_electricalAngle(motor->vars->shaft_angle, motor->pole_pairs));
+	/* Note that _normalizeAngle() works with floats, not fix16 */
+    fix16_t el_angle = _normalizeAngle(_electricalAngle(motor->vars->shaft_angle, motor->pole_pairs));
 
 	/* Inverse park transform */
 	float Ualpha = -(motor->dq->Uq) * _sin(el_angle);

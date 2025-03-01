@@ -42,6 +42,11 @@
 #define DEG_TO_RAD 0.01745329251
 
 /*
+ * Sine loop-up table: 16-bit depth, 8-bit resolution
+ */
+extern uint16_t sineLUT[];
+
+/*
  * Some macros
  */
 #define _constrain(amt,low,high) ((amt)<(low)?(low):((amt)>(high)?(high):(amt)))
@@ -67,9 +72,11 @@ __STATIC_INLINE fix16_t _cos(fix16_t angle) {
  * @param[in] angle(radians)
  * @return normalized_angle
  */
-__STATIC_INLINE fix16_t _normalizeAngle(float angle){
-  float a = fmod(angle, _2PI);       // fmod(x,y) returns remainder of x/y
-  return a >= 0 ? float_to_fix16(a) : (float_to_fix16(a) + FIX16_2PI);    // add 2pi to negative angles to make positive
+__STATIC_INLINE fix16_t _normalizeAngle(fix16_t angle){
+  fix16_t a = fix16_mod(angle, FIX16_2PI);
+
+  /* Add 2pi to negative values to make positive */
+  return a >= 0 ? a : (a + FIX16_2PI);
 }
 
 /*
@@ -79,12 +86,9 @@ __STATIC_INLINE fix16_t _normalizeAngle(float angle){
  * @return electrical angle
  */
 __STATIC_INLINE fix16_t _electricalAngle(fix16_t shaft_angle, uint8_t pole_pairs){
-  return (fix16_mul(shaft_angle, (fix16_t)pole_pairs));
+  return fix16_mul(shaft_angle, int_to_fix16(pole_pairs));
 }
 
-/*
- * Sine loop-up table: 16-bit depth, 8-bit resolution
- */
-extern uint16_t sineLUT[];
+
 
 #endif /* INC_FOC_UTILS_H_ */

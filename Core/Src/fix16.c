@@ -8,54 +8,6 @@
 #include "fix16.h"
 
 /*
- * Fixed 16 multiplier constants
- */
-static const fix16_t fix16_one = 0x00010000;
-static const fix16_t fix16_half = 0x8000;
-static const fix16_t fix16_maximum  = 0x7FFFFFFF;
-static const fix16_t fix16_minimum  = 0x80000000;
-static const fix16_t fix16_overflow = 0x80000000;
-
-fix16_t int_to_fix16(int x)
-{
-	return x * fix16_one;
-}
-
-fix16_t float_to_fix16(float x)
-{
-	return (fix16_t)(x * fix16_one + (x >= 0 ? 0.5f : -0.5f));
-}
-
-float fix16_to_float(fix16_t x)
-{
-	return x / (float)fix16_one;
-}
-
-int32_t fix16_to_int(fix16_t x)
-{
-	if(x >= 0)
-	{
-		return ((x + fix16_half) >> 16);
-	}
-	return ((x - fix16_half) >> 16);
-}
-
-uint32_t fix16_abs(fix16_t x)
-{
-	return (x >= 0) ? x : -x;
-}
-
-int32_t fix16_get_int_bits(fix16_t x)
-{
-	return (int32_t)(x >> 16);
-}
-
-uint32_t fix16_get_decimal_bits(fix16_t x)
-{
-		return (uint32_t)(x & 0xFFFF);
-}
-
-/*
  * @brief 64-bit implementation of multiplication. Fastest on 32-bit MCUs like Cortex M3
  *
  * @note Upper 16 bits -> overflow detection
@@ -77,7 +29,7 @@ fix16_t fix16_mul(fix16_t a, fix16_t b)
 		/* For negative numbers, all upper is 1. So invert to check if all 0. */
 		if(~upper)
 		{
-			return fix16_overflow;
+			return FIX16_OF;
 		}
 		product --;
 	}
@@ -86,7 +38,7 @@ fix16_t fix16_mul(fix16_t a, fix16_t b)
 		/* Positive numbers: all 0 */
 		if(upper)
 		{
-			return fix16_overflow;
+			return FIX16_OF;
 		}
 	}
 
@@ -120,7 +72,7 @@ fix16_t fix16_div(fix16_t a, fix16_t b)
 	/* Prevent division by 0: returns min value instead */
 	if (b == 0)
 	{
-		return fix16_minimum;
+		return FIX16_MIN;
 	}
 
     uint32_t remainder = fix16_abs(a);
@@ -158,7 +110,7 @@ fix16_t fix16_div(fix16_t a, fix16_t b)
         quotient += (uint64_t)div << bit_pos;
 
 		if (div & ~(0xFFFFFFFF >> bit_pos))
-				return fix16_overflow;
+				return FIX16_OF;
 
 		remainder <<= 1;
 		bit_pos--;
@@ -172,8 +124,8 @@ fix16_t fix16_div(fix16_t a, fix16_t b)
 	/* Sign of result */
 	if ((a ^ b) & 0x80000000)
 	{
-		if (result == fix16_minimum)
-				return fix16_overflow;
+		if (result == FIX16_MIN)
+				return FIX16_OF;
 
 		result = -result;
 	}

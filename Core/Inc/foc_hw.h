@@ -47,15 +47,15 @@ typedef struct
 
 typedef struct
 {
-	float Uq;
-	float Ud;
+	fix16_t Uq;
+	fix16_t Ud;
 } DQ_t;
 
 typedef struct
 {
-	float Ua;
-	float Ub;
-	float Uc;
+	fix16_t Ua;
+	fix16_t Ub;
+	fix16_t Uc;
 } PV_t;
 
 typedef enum

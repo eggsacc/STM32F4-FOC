@@ -39,6 +39,9 @@ LOW PRIO
                                                                                 UPDATES
 
 *****************************************************************************************************************************************************************************
+1/3/25
+- Changed _normalizeAngle() function to operate on fix16 type instead of floats. Also I just knew fmod() means "float-mod" lol.
+
 28/2/25
 - Implemented Q16.16 for sine approximations. Works pretty well! Running a test calculating the sine values for [0, 2pi] with a 0.01 step resolution (628 calculations) yields 
   the following results: sin() -> 17629us, _sin() -> 4977us. About a 3.5x improvement in performance.
@@ -51,7 +54,7 @@ LOW PRIO
 - Starting to think that it's probably better if the library is just optimised for 2 motors, instead of abstracting it for any number of motors. Who is even gonna control 
   so many motors simultaneously.
 - Chatgpt just told me that SimpleFOC runs at 10kHz. That is insane. How is my program running on a much more capable microcontroller only reaching 1kHz??
-- Implemented a very basic fixed point arithmetics library. Kudos to https://github.com/PetteriAimonen/libfixmath/blob/master/libfixmath/fix16.h
+- Implemented a very basic fixed point arithmetics library. Kudos to 	
 - Realized that fixed points multiplications are exceptionally prone to overflowing, and the max square it can calculate is only +-127 * +-127.
 - It's quite interesting though. Uses a ton of bitwise tricks to perform those calculations extremely fast.
 
