@@ -130,13 +130,18 @@ void SetTorque(BLDCMotor* motor) {
     fix16_t el_angle = _normalizeAngle(_electricalAngle(motor->vars->shaft_angle, motor->pole_pairs));
 
 	/* Inverse park transform */
-	float Ualpha = -(motor->dq->Uq) * _sin(el_angle);
-	float Ubeta = motor->dq->Uq * _cos(el_angle);
+	fix16_t Ualpha = fix16_mul(-(motor->dq->Uq), _sin(el_angle));
+	fix16_t Ubeta = fix16_mul(motor->dq->Uq, _cos(el_angle));
+
+	fix16_t half_supply_v = motor->supply_voltage >> 1;
+	fix16_t sqrt3_beta = fix16_mul(FIX16_SQRT3, Ubeta);
 
 	/* Inverse Clarke transform */
-	motor->pv->Ua = Ualpha + motor->supply_voltage / 2.0f;
-	motor->pv->Ub = (_SQRT3 * Ubeta - Ualpha) / 2.0f + motor->supply_voltage / 2.0f;
-	motor->pv->Uc = (- Ualpha - _SQRT3 * Ubeta) / 2.0f + motor->supply_voltage / 2.0f;
+	motor->pv->Ua = Ualpha + half_supply_v;
+	/* (_SQRT3 * Ubeta - Ualpha) / 2.0f */
+	motor->pv->Ub = ((sqrt3_beta - Ualpha) >> 1) + half_supply_v;
+	/* (- Ualpha - _SQRT3 * Ubeta) / 2.0f */
+	motor->pv->Uc = ((-Ualpha - sqrt3_beta) >> 1) + half_supply_v;
 
 	SetPWM(motor);
 }
@@ -160,8 +165,8 @@ void LinkSensor(BLDCMotor* motor, AS5600* sensor, I2C_HandleTypeDef *i2c_handle)
 
 	motor->sensor = sensor;
 
-	motor->dq->Uq = motor->voltage_limit / 2;
-	motor->vars->shaft_angle = _PI_2;
+	motor->dq->Uq = motor->voltage_limit >> 1;
+	motor->vars->shaft_angle = FIX16_PI_2;
 	SetTorque(motor);
 	HAL_Delay(1500);
 	AS5600_ZeroAngle(sensor);
@@ -189,7 +194,7 @@ void BLDC_AutoCalibrate(BLDCMotor* motor)
 	float total = 0;
 
 	/* Set some current & electrical angle to 0 */
-	motor->dq->Uq = motor->supply_voltage / 3;
+	motor->dq->Uq = motor->supply_voltage >> 2;
 	motor->pole_pairs = 1;
 	motor->vars->shaft_angle = 0;
 	SetTorque(motor);
@@ -199,13 +204,13 @@ void BLDC_AutoCalibrate(BLDCMotor* motor)
 	/* Take 3 repeated mechanical angle readings */
 	for(int i = 0; i < 3; i++)
 	{
-		motor->vars->shaft_angle = _PI;
+		motor->vars->shaft_angle = FIx16_PI;
 		SetTorque(motor);
 		HAL_Delay(1500);
 		angle_a = AS5600_ReadAngle(motor->sensor);
 		HAL_Delay(500);
 
-		motor->vars->shaft_angle = _3PI_2;
+		motor->vars->shaft_angle = FIX16_3PI_2;
 		SetTorque(motor);
 		HAL_Delay(1500);
 		angle_b = AS5600_ReadAngle(motor->sensor);
@@ -215,7 +220,7 @@ void BLDC_AutoCalibrate(BLDCMotor* motor)
 	}
 
 	/* Calculate average mechanical angle delta */
-	float avg_delta = total / 3;
+	float avg_delta = total / 5;
 
 	/* Set sensor angle inverter */
 	motor->sensor_dir = avg_delta > 0 ? 1 : -1;
