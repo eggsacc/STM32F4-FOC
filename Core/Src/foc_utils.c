@@ -38,7 +38,6 @@ uint16_t sineLUT[65] = {0, 804, 1607, 2410, 3211, 4011, 4807, 5601, 6392, 7179, 
  * @return sin(angle)
  */
 fix16_t _sin(fix16_t angle){
-pp
   int32_t first, second;
   fix16_t index = fix16_div(angle, FIX16_2PI) << SINELUT_WIDTH_BITS;
   uint8_t frac = (uint8_t)((index & 0xFFFF) >> 8);

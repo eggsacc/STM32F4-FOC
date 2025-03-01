@@ -24,6 +24,7 @@
 #include "foc_core.h"
 #include "serial_commander.h"
 #include <string.h>
+#include "tests.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -130,22 +131,9 @@ int main(void)
   LinkSensor(&m1, &s1, &hi2c1);
 
   SerialCommander_Init(&m1, &huart1);
-  uint32_t sin_time = 0;
-  uint32_t _sin_time = 0;
-  uint8_t tx_buff[128];
 
-//  Serial_Print("########## Test ############\n");
-//  volatile float accum = 0;
-//  sin_time = micros();
-//  for(float i = 0; i < 6.283; i += 0.02)
-//  {
-//	  accum += sin(i);
-//  }
-//  _sin_time = micros();
-//
-//  sprintf(tx_buff, "sin time: %d, result: %f\n", _sin_time - sin_time, accum);
-//  Serial_Print(&tx_buff);
-//  HAL_Delay(50);
+  uint8_t tx_buff[128];
+  uint8_t counter = 0;
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -155,6 +143,23 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+
+	  OLVelocityControl(&m1, 3.14);
+	  if(counter >= 20)
+	  {
+//		  sprintf(tx_buff, "%f\t%f\t%f\n",
+//		  			  fix16_to_float(m1.pv->Ua),
+//					  fix16_to_float(m1.pv->Ub),
+//					  fix16_to_float(m1.pv->Uc));
+
+		  sprintf(tx_buff, "%f\n", fix16_to_float(_normalizeAngle(_electricalAngle(m1.vars->shaft_angle, m1.pole_pairs))));
+		  Serial_Print(&tx_buff);
+		  counter = 0;
+	  }
+	  counter++;
+
+
+
 	  //CLPositionControl(&m1, 2.0);
 	  //OLVelocityControl(&m1, 10);
 	  //CLVelocityControl(&m1, 6);

@@ -30,10 +30,10 @@ void OLVelocityControl(BLDCMotor* motor, float target_velocity)
 	/* Time difference since last call */
 	uint32_t time_elapsed_us = now_us - motor->vars->prev_us;
 	float time_elapsed_s = time_elapsed_us  / 1000000.0f;
-	time_elapsed_s = time_elapsed_s > 0.5 ? 0.00001 : time_elapsed_s;
+	time_elapsed_s = time_elapsed_s > 0.5 ? 0.0005 : time_elapsed_s;
 
 	/* Update virtual shaft angle, and calculate phase voltages */
-	motor->vars->shaft_angle = _normalizeAngle(motor->vars->shaft_angle + target_velocity * time_elapsed_s);
+	motor->vars->shaft_angle = _normalizeAngle(motor->vars->shaft_angle + float_to_fix16(target_velocity * time_elapsed_s));
 	motor->dq->Uq = motor->voltage_limit;
 	SetTorque(motor);
 

@@ -130,8 +130,8 @@ void SetTorque(BLDCMotor* motor) {
     fix16_t el_angle = _normalizeAngle(_electricalAngle(motor->vars->shaft_angle, motor->pole_pairs));
 
 	/* Inverse park transform */
-	fix16_t Ualpha = fix16_mul(-(motor->dq->Uq), _sin(el_angle));
-	fix16_t Ubeta = fix16_mul(motor->dq->Uq, _cos(el_angle));
+	fix16_t Ualpha = fix16_mul(motor->dq->Uq, _cos(el_angle));
+	fix16_t Ubeta = fix16_mul(motor->dq->Uq, _sin(el_angle));
 
 	fix16_t half_supply_v = motor->supply_voltage >> 1;
 	fix16_t sqrt3_beta = fix16_mul(FIX16_SQRT3, Ubeta);
@@ -139,10 +139,11 @@ void SetTorque(BLDCMotor* motor) {
 	/* Inverse Clarke transform */
 	motor->pv->Ua = Ualpha + half_supply_v;
 	/* (_SQRT3 * Ubeta - Ualpha) / 2.0f */
-	motor->pv->Ub = ((sqrt3_beta - Ualpha) >> 1) + half_supply_v;
+//	motor->pv->Ub = ((sqrt3_beta - Ualpha) >> 1) + half_supply_v;
+	motor->pv->Ub = fix16_mul(FIX16_HALF, (sqrt3_beta - Ualpha)) + half_supply_v;
 	/* (- Ualpha - _SQRT3 * Ubeta) / 2.0f */
-	motor->pv->Uc = ((-Ualpha - sqrt3_beta) >> 1) + half_supply_v;
-
+//	motor->pv->Uc = ((-Ualpha - sqrt3_beta) >> 1) + half_supply_v;
+	motor->pv->Uc = fix16_mul(FIX16_HALF, (-Ualpha - sqrt3_beta)) + half_supply_v;
 	SetPWM(motor);
 }
 
@@ -204,7 +205,7 @@ void BLDC_AutoCalibrate(BLDCMotor* motor)
 	/* Take 3 repeated mechanical angle readings */
 	for(int i = 0; i < 3; i++)
 	{
-		motor->vars->shaft_angle = FIx16_PI;
+		motor->vars->shaft_angle = FIX16_PI;
 		SetTorque(motor);
 		HAL_Delay(1500);
 		angle_a = AS5600_ReadAngle(motor->sensor);
