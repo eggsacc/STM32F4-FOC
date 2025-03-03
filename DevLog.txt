@@ -22,11 +22,9 @@
 *****************************************************************************************************************************************************************************
 
 PLEASE FIX NOW
-- Motor debug: print out all parameters for plotting visualization
-- IT DOSN"T EVEN WORK, SO FIX EVERYTHING I GUESS
+- AS5600 I2C read DMA
     
 HIGH PRIO
-- Fixed point library
 - Make library optimised for 2 motors only
 - Current sense library
 - Serial commander support 2 motors
@@ -40,6 +38,15 @@ LOW PRIO
                                                                                 UPDATES
 
 *****************************************************************************************************************************************************************************
+3/3/25
+- Reverted git to commit on 1 march since converting LPF and PID to fix16 was a terrible idea.
+- No more fix16. I've had enough of it, and floating point operations dosn't seem that much slower anyways.
+- Only trig approximations & the SetTorque functions will use fix16 since the number range they handle are quite predictable and fits well in the Q16.16 precision.
+- According to some guy on reddit, I am using fixed point arithmatics wrong. IDK bro. but probably.
+- Idk why im even spending so much time on optimizing the library when it's not even half complete; i really need to cure this habit
+- Configured 4x ADCs to read in DMA mode. Seems to work quite well.
+- Really need to work on communicating with the sensor using DMA or interrupts intead of blocking I2C
+
 1/3/25
 - Changed _normalizeAngle() function to operate on fix16 type instead of floats. Also I just knew fmod() means "float-mod" lol.
 - Updated SetTorque() function to operate on fix16 type variables.

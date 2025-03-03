@@ -60,5 +60,5 @@ fix16_t _sin(fix16_t angle){
     second = -(int32_t)sineLUT[SINELUT_WIDTH - index - 1];
   }
 
-  return (fix16_t)((first + (((second - first) * frac) >> 8)) * 2);
+  return (fix16_t)((first + (((second - first) * frac) >> 8)) << 1);
 }
