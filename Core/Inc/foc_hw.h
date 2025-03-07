@@ -27,7 +27,8 @@
 	PV_t m##_pv;\
 	PID_t m##_pid;\
 	LPF_t m##_lpf;\
-	BLDCMotor_Init(&(m), &(m##_var), &(m##_dq), &(m##_pv), &(m##_pid), &(m##_lpf), &(timer), (pole_pairs))\
+	Ctrl_t m##_ctrl;\
+	BLDCMotor_Init(&(m), &(m##_var), &(m##_dq), &(m##_pv), &(m##_pid), &(m##_lpf), &(m##_ctrl), &(timer), (pole_pairs))\
 
 
 /*
@@ -60,9 +61,10 @@ typedef struct
 
 typedef enum
 {
-	open_loop_vel,
-	closed_loop_pos,
-	closed_loop_vel,
+	none,
+	open_loop_velocity,
+	closed_loop_position,
+	closed_loop_velocity,
 }Ctrl_t;
 
 typedef struct
@@ -73,6 +75,11 @@ typedef struct
 	fix16_t voltage_limit;
 	fix16_t supply_voltage;
 
+	/* Target variables for serial commander */
+	float target_velocity;
+	float target_pos;
+
+
 	/* Pointers to structs */
 	Var_t* vars;
 	DQ_t* dq;
@@ -81,13 +88,14 @@ typedef struct
 	TIM_HandleTypeDef* timer;
 	PID_t* pid;
 	LPF_t* lpf;
+	Ctrl_t* control;
 } BLDCMotor;
 
 /*
  * Public functions
  */
 void PWM_Start_3_Channel(TIM_HandleTypeDef* timer);
-void BLDCMotor_Init(BLDCMotor* motor, Var_t* var, DQ_t* dq, PV_t* pv, PID_t* pid, LPF_t* lpf, TIM_HandleTypeDef* timer, uint8_t pole_pairs);
+void BLDCMotor_Init(BLDCMotor* motor, Var_t* var, DQ_t* dq, PV_t* pv, PID_t* pid, LPF_t* lpf, Ctrl_t* ctrl, TIM_HandleTypeDef* timer, uint8_t pole_pairs);
 void LinkSensor(BLDCMotor* motor, AS5600* sensor, I2C_HandleTypeDef *i2c_handle);
 void BLDC_AutoCalibrate(BLDCMotor* motor);
 void MotorDebug(BLDCMotor* motor);

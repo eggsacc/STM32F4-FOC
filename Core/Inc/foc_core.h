@@ -13,6 +13,7 @@
 /*
  * Control functions
  */
+void BLDC_RunMode(BLDCMotor* m0, BLDCMotor* m1);
 void OLVelocityControl(BLDCMotor* motor, float target_velocity);
 void CLPositionControl(BLDCMotor* motor, float target_pos);
 void CLVelocityControl(BLDCMotor* motor, float target_velocity);

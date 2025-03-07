@@ -94,7 +94,7 @@ static PV_t PV_t_Init()
  *
  * @retval BLDCMotor motor
  */
-void BLDCMotor_Init(BLDCMotor* motor, Var_t* var, DQ_t* dq, PV_t* pv, PID_t* pid, LPF_t* lpf, TIM_HandleTypeDef* timer, uint8_t pole_pairs)
+void BLDCMotor_Init(BLDCMotor* motor, Var_t* var, DQ_t* dq, PV_t* pv, PID_t* pid, LPF_t* lpf, Ctrl_t* ctrl, TIM_HandleTypeDef* timer, uint8_t pole_pairs)
 {
 	/* De-reference & initialize sub-structs */
 	*var = Var_t_Init();
@@ -102,6 +102,7 @@ void BLDCMotor_Init(BLDCMotor* motor, Var_t* var, DQ_t* dq, PV_t* pv, PID_t* pid
 	*pv = PV_t_Init();
 	*pid = PID_Init();
 	*lpf = LPF_Init();
+	*ctrl = none;
 
 	/* BLDCMotor struct initialization */
 	motor->vars = var;
@@ -111,8 +112,11 @@ void BLDCMotor_Init(BLDCMotor* motor, Var_t* var, DQ_t* dq, PV_t* pv, PID_t* pid
 	motor->timer = timer;
 	motor->pid = pid;
 	motor->lpf = lpf;
+	motor->control = ctrl;
 	motor->sensor_dir = 1;
 	motor->pole_pairs = pole_pairs;
+	motor->target_velocity = 0;
+	motor->target_pos = 0;
 	motor->supply_voltage = int_to_fix16(12);
 	motor->voltage_limit = int_to_fix16(3);
 }

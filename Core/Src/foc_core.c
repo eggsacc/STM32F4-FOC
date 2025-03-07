@@ -11,6 +11,54 @@
 #include "pid.h"
 
 /*
+ * @brief Run motor using configured control type
+ * @param[in] BLDCMotor* m0
+ * @param[in] BLDCMotor* m1
+ * @note Set other motor ptr to NULL if only using 1 motor
+ */
+void BLDC_RunMode(BLDCMotor* m0, BLDCMotor* m1)
+{
+	if(m0 != NULL)
+	{
+		switch(*(m0->control))
+		{
+		case none:
+			return;
+
+		case open_loop_velocity:
+			OLVelocityControl(m0, m0->target_velocity);
+			break;
+
+		case closed_loop_position:
+			CLPositionControl(m0, m0->target_pos);
+			break;
+
+		case closed_loop_velocity:
+			CLVelocityControl(m0, m0->target_velocity);
+			break;
+		}
+	}
+
+	if(m1 != NULL)
+	{
+		switch(*(m1->control))
+		{
+		case none:
+			return;
+
+		case open_loop_velocity:
+			OLVelocityControl(m1, m1->target_velocity);
+
+		case closed_loop_position:
+			CLPositionControl(m1, m1->target_pos);
+
+		case closed_loop_velocity:
+			CLVelocityControl(m1, m1->target_velocity);
+		}
+	}
+}
+
+/*
  * @brief Open-loop velocity control
  * @param[in] BLDCMotor* motor
  * @param[in] float target_velocity (rads/sec)

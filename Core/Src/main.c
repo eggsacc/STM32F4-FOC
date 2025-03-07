@@ -44,7 +44,6 @@
 
 /* Private variables ---------------------------------------------------------*/
 ADC_HandleTypeDef hadc1;
-DMA_HandleTypeDef hdma_adc1;
 
 I2C_HandleTypeDef hi2c1;
 I2C_HandleTypeDef hi2c2;
@@ -130,9 +129,9 @@ int main(void)
   /* Attach sensor to motor object & initialize */
   LinkSensor(&m1, &s1, &hi2c1);
 
-  SerialCommander_Init(&m1, &huart1);
+  SerialCommander_Init(&m1, NULL, &huart1);
 
-  HAL_ADC_Start_DMA(&hadc1, adc_vals, 4);
+  //HAL_ADC_Start_DMA(&hadc1, adc_vals, 4);
 
   /* USER CODE END 2 */
 
@@ -145,7 +144,7 @@ int main(void)
     /* USER CODE BEGIN 3 */
 
 	  //OLVelocityControl(&m1, 3.14);
-	  HAL_Delay(100);
+	  SerialCommander_PollEvents();
 	  //CLPositionControl(&m1, 2.0);
 	  //OLVelocityControl(&m1, 10);
 	  //CLVelocityControl(&m1, 6);
@@ -230,7 +229,7 @@ static void MX_ADC1_Init(void)
   hadc1.Init.ExternalTrigConv = ADC_SOFTWARE_START;
   hadc1.Init.DataAlign = ADC_DATAALIGN_RIGHT;
   hadc1.Init.NbrOfConversion = 4;
-  hadc1.Init.DMAContinuousRequests = ENABLE;
+  hadc1.Init.DMAContinuousRequests = DISABLE;
   hadc1.Init.EOCSelection = ADC_EOC_SEQ_CONV;
   if (HAL_ADC_Init(&hadc1) != HAL_OK)
   {
@@ -504,9 +503,6 @@ static void MX_DMA_Init(void)
   __HAL_RCC_DMA2_CLK_ENABLE();
 
   /* DMA interrupt init */
-  /* DMA2_Stream0_IRQn interrupt configuration */
-  HAL_NVIC_SetPriority(DMA2_Stream0_IRQn, 0, 0);
-  HAL_NVIC_EnableIRQ(DMA2_Stream0_IRQn);
   /* DMA2_Stream2_IRQn interrupt configuration */
   HAL_NVIC_SetPriority(DMA2_Stream2_IRQn, 0, 0);
   HAL_NVIC_EnableIRQ(DMA2_Stream2_IRQn);

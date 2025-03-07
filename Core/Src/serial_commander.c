@@ -10,45 +10,57 @@
 #include <stdio.h>
 #include <string.h>
 
-/*
- * Static variables used
- */
-static UART_HandleTypeDef* uart_dev;
-static BLDCMotor* bldc_dev;
-static uint8_t rx_buff[16];
-static uint8_t tx_buff[32];
-static uint8_t rx_flag = 0;
+typedef struct
+{
+	BLDCMotor* m0;
+	BLDCMotor* m1;
+	UART_HandleTypeDef* uart;
+	uint8_t rx_buff[32];
+	uint8_t tx_buff[32];
+	uint8_t rx_flag;
+} Serial_t;
+
+static Serial_t serial_dev =
+		{
+				.m0 = NULL,
+				.m1 = NULL,
+				.rx_flag = 0,
+				.uart = NULL
+		};
 
 /*
  * @brief Attach Serial commander to motor object
- * @param[in] motor ptr
+ * @param[in] BLDCMotor* m0
+ * @param[in] BLDCMotor* m1
  * @param[in] UART handle
  * @retval -
+ * @note Pass NULL for second motor ptr if only using 1 motor
  */
-__INLINE void SerialCommander_Init(BLDCMotor* motor, UART_HandleTypeDef* huart)
+__INLINE void SerialCommander_Init(BLDCMotor* m0, BLDCMotor* m1, UART_HandleTypeDef* huart)
 {
-	uart_dev = huart;
-	bldc_dev = motor;
-	HAL_UARTEx_ReceiveToIdle_DMA(uart_dev, rx_buff, 32);
+	serial_dev.uart = huart;
+	serial_dev.m0 = m0;
+	serial_dev.m1 = m1;
+	HAL_UARTEx_ReceiveToIdle_DMA(serial_dev.uart, serial_dev.rx_buff, 32);
 }
 
 /*
  * @brief DMA receive to idle interrupt callback function
- * @note Sets the receive flag to 1
+ * @note Sets the receive flag to 1 and append null terminator to end of string
  */
 void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
 {
 	/* Indicate incoming data */
-	rx_flag = 1;
+	serial_dev.rx_flag = 1;
 
 	/* Insert null terminator for C string */
 	if(Size > 15)
 	{
-		rx_buff[15] = '\0';
+		serial_dev.rx_buff[15] = '\0';
 	}
 	else
 	{
-		rx_buff[Size] = '\0';
+		serial_dev.rx_buff[Size] = '\0';
 	}
 }
 
@@ -58,9 +70,9 @@ void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
  * @param[in] string
  * @retval -
  */
-void Serial_Print(const char* s)
+__INLINE void Serial_Print(const char* s)
 {
-	HAL_UART_Transmit_DMA(uart_dev, s, strlen(s));
+	HAL_UART_Transmit_DMA(serial_dev.uart, s, strlen(s));
 }
 
 /*
@@ -68,42 +80,47 @@ void Serial_Print(const char* s)
  * @param[in] -
  * @retval -
  */
-void SerialCommander_EventUpdate()
+void SerialCommander_PollEvents()
 {
 	/* If data flag raised, parse buffer data */
-	if(rx_flag)
+	if(serial_dev.rx_flag == 1)
 	{
+		Serial_Print((char*)serial_dev.rx_buff);
 		char cmd;
 		float val;
+		char motor[2];
 
 		/* If third character is not terminator */
-		if(rx_buff[2] != '\0')
-		{
-			/* Parse data in format (command val_float) */
-			sscanf(rx_buff, "%c %f", &cmd, &val);
-		}
-		else
-		{
-			Serial_Print("Invalid command\n");
-		}
-
-		switch (cmd)
-		{
-		case 'V':
-			sprintf(&tx_buff, "Velocity: %f", val);
-			Serial_Print((const char*)&tx_buff);
-			break;
-
-		case 'T':
-			Serial_Print("T\n");
-			break;
-
-		default:
-			Serial_Print("Invalid command\n");
-		}
+//		if(serial_dev.rx_buff[2] != '\0')
+//		{
+//			/* Parse data in format (command val_float) */
+//			sscanf(serial_dev.rx_buff, "%c %f", &cmd, &val);
+//		}
+//		else
+//		{
+//			Serial_Print("Invalid command\n");
+//		}
+//
+//		switch (cmd)
+//		{
+//		case 'V':
+//			sprintf((char*)serial_dev.tx_buff, "%s Velocity: %f", val);
+//			Serial_Print((const char*)serial_dev.tx_buff);
+//			serial_dev.m0->target_velocity = val;
+//			break;
+//
+//		case 'T':
+//			sprintf((char*)serial_dev.tx_buff, "Velocity: %f", val);
+//			Serial_Print((const char*)serial_dev.tx_buff);
+//			Serial_Print("T\n");
+//			break;
+//
+//		default:
+//			Serial_Print("Invalid command\n");
+//		}
 
 		/* Reset receive data flag & signal dma ready for next input */
-		rx_flag = 0;
-		HAL_UARTEx_ReceiveToIdle_DMA(uart_dev, rx_buff, 32);
+		serial_dev.rx_flag = 0;
+		HAL_UARTEx_ReceiveToIdle_DMA(serial_dev.uart, serial_dev.rx_buff, 32);
 	}
 }

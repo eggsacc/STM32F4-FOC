@@ -1,20 +1,7 @@
-1) In foc.c->MotorInit(): zero angle initialized using attached as5600 sensor.
-   Implement as5600 object attached to each motor instance (unique I2C handler address)
-   Check sensor connected and store zero startup angle.
+IMPORTANT:
 
-2) HAL_GetTick() returns number of ticks since last reboot/startup, with each tick being 1ms.
+Timer utils requires DWT_Init() to be called in main.
 
-3) Since timer ticks are unsigned int, there is no need to handle overflow since now - prev if now has overflowed will automatically correct.
-
-4) Timer utils requires DWT_Init() to be called in main.
-
-5) Added open loop velocity control. Function generates and updates the motor->params->el_angle param in each iteration based on the time elapsed and desired velocity.
-
-6) Timer struct (htimx) added to Motor struct
-   - NOTE: When accessing a member directly from a struct variable, use the dot (.) operator. Only use arrow (->) when accessing from struct pointer.
-   - BUGFIX: motor->TIM_HandleTypeDef->Instance->CCR1 dosnt work. Must be TIM_HandleTypeDef.Instance->CCR1
-   
-   
 *****************************************************************************************************************************************************************************
 
                                                                                  TO:DO
@@ -22,6 +9,7 @@
 *****************************************************************************************************************************************************************************
 
 PLEASE FIX NOW
+- ADC1 interrupt instead of DMA
 - AS5600 I2C read DMA
     
 HIGH PRIO
@@ -38,6 +26,14 @@ LOW PRIO
                                                                                 UPDATES
 
 *****************************************************************************************************************************************************************************
+8/3/25
+- Updates serial commander to handle only 2 motor
+- Updated serial commander to hold all parameters in a static struct
+- Got this weird problem where the serial event polling function does not execute properly. It can't transmit anything over serial.
+- However, placing the uart transmit in the uart receive callback function works fine.
+- Why is this the case? I checked that the ADC and USART Rx Tx are all using different DMA streams.
+- Perhaps it is due to the ADC continuous DMA requests flooding the DMA controller?
+
 3/3/25
 - Reverted git to commit on 1 march since converting LPF and PID to fix16 was a terrible idea.
 - No more fix16. I've had enough of it, and floating point operations dosn't seem that much slower anyways.
