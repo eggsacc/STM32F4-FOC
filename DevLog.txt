@@ -9,8 +9,6 @@ Timer utils requires DWT_Init() to be called in main.
 *****************************************************************************************************************************************************************************
 
 PLEASE FIX NOW
-- ADC1 interrupt instead of DMA
-- AS5600 I2C read DMA
     
 HIGH PRIO
 - Make library optimised for 2 motors only
@@ -26,6 +24,22 @@ LOW PRIO
                                                                                 UPDATES
 
 *****************************************************************************************************************************************************************************
+23/3/25
+- Alright actually wtf am I doing. Why did I always have the idea that the structs within the motor struct has to be manually allocated and referenced???
+- I can literally just make it such that the motor struct automatically creates those variables!!!!
+- Time to update basically the entire library...
+- Reverted clarke park transforms back to floating point operations (screw fix16)
+- Added EVENT_FLAGS global variable as status indicators for callback events
+- Still can't decide on how to implement the sensor DMA read callbacks...
+
+22/3/25
+- AS5600 sensor samples at ~6.6kHz (150us sample rate)
+- Updated AS5600 library to use DMA to automatically update angle readings at 1kHz, initiated by tim4 interrupt
+- How do I pass the sensor dev struct into the callback function?? I think need to create the sensor struct as a global variable or something
+
+16/3/25
+- Enabled timer 4 to be used as a time-base for fixed-frequency update events.
+
 8/3/25
 - Updates serial commander to handle only 2 motor
 - Updated serial commander to hold all parameters in a static struct

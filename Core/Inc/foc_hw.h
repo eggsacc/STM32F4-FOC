@@ -21,16 +21,6 @@
 #include "timer_utils.h"
 #include "fix16.h"
 
-#define BLDC_Init(m, timer, pole_pairs) \
-	Var_t m##_var;																							\
-	DQ_t m##_dq;																							\
-	PV_t m##_pv;\
-	PID_t m##_pid;\
-	LPF_t m##_lpf;\
-	Ctrl_t m##_ctrl;\
-	BLDCMotor_Init(&(m), &(m##_var), &(m##_dq), &(m##_pv), &(m##_pid), &(m##_lpf), &(m##_ctrl), &(timer), (pole_pairs))\
-
-
 /*
  * Typedef structures
  *
@@ -42,29 +32,32 @@
  */
 typedef struct
 {
-	fix16_t shaft_angle;
+	float shaft_angle;
 	uint32_t prev_us;
+	uint16_t phase_current[2];
 } Var_t;
 
 typedef struct
 {
-	fix16_t Uq;
-	fix16_t Ud;
+	float Uq;
+	float Ud;
 } DQ_t;
 
 typedef struct
 {
-	fix16_t Ua;
-	fix16_t Ub;
-	fix16_t Uc;
+	float Ua;
+	float Ub;
+	float Uc;
 } PV_t;
 
 typedef enum
 {
 	none,
 	open_loop_velocity,
+	closed_loop_position_no_cs,
+	closed_loop_velocity_no_cs,
 	closed_loop_position,
-	closed_loop_velocity,
+	closed_loop_velocity
 }Ctrl_t;
 
 typedef struct
@@ -72,23 +65,23 @@ typedef struct
 	/* Variables */
 	int8_t sensor_dir;
 	uint8_t pole_pairs;
-	fix16_t voltage_limit;
-	fix16_t supply_voltage;
+
+	float voltage_limit;
+	float supply_voltage;
 
 	/* Target variables for serial commander */
 	float target_velocity;
 	float target_pos;
 
-
-	/* Pointers to structs */
-	Var_t* vars;
-	DQ_t* dq;
-	PV_t* pv;
+	/* Sub-structs */
+	Var_t vars;
+	DQ_t dq;
+	PV_t pv;
+	PID_t pid;
+	LPF_t lpf;
+	Ctrl_t control;
 	AS5600* sensor;
 	TIM_HandleTypeDef* timer;
-	PID_t* pid;
-	LPF_t* lpf;
-	Ctrl_t* control;
 } BLDCMotor;
 
 /*

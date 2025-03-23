@@ -12,7 +12,6 @@
  * Includes
  */
 #include "stm32f4xx_hal.h"
-#include "fix16.h"
 #include <math.h>
 
 /*
@@ -54,16 +53,16 @@ extern uint16_t sineLUT[];
 /*
  * Trig approximation functions using look-up table
  */
-fix16_t _sin(fix16_t angle);
+float _sin(float angle);
 
 /*
  * @brief Cosine approximation
  * @param[in] angle(radians)
  * @return cos(angle)
  */
-__STATIC_INLINE fix16_t _cos(fix16_t angle) {
-  fix16_t _angle = angle + FIX16_PI_2;
-  _angle = _angle > FIX16_2PI ? _angle - FIX16_2PI : _angle;
+__STATIC_INLINE float _cos(float angle) {
+  float _angle = angle + _PI_2;
+  _angle = _angle > _2PI ? _angle - _2PI : _angle;
   return _sin(_angle);
 }
 
@@ -72,11 +71,11 @@ __STATIC_INLINE fix16_t _cos(fix16_t angle) {
  * @param[in] angle(radians)
  * @return normalized_angle
  */
-__STATIC_INLINE fix16_t _normalizeAngle(fix16_t angle){
-  fix16_t a = fix16_mod(angle, FIX16_2PI);
+__STATIC_INLINE float _normalizeAngle(float angle){
+  float a = fmod(angle, _2PI);
 
   /* Add 2pi to negative values to make positive */
-  return a >= 0 ? a : (a + FIX16_2PI);
+  return a >= 0 ? a : (a + _2PI);
 }
 
 /*
@@ -85,10 +84,8 @@ __STATIC_INLINE fix16_t _normalizeAngle(fix16_t angle){
  * @param[in] pole_pairs
  * @return electrical angle
  */
-__STATIC_INLINE fix16_t _electricalAngle(fix16_t shaft_angle, uint8_t pole_pairs){
-  return fix16_mul(shaft_angle, int_to_fix16(pole_pairs));
+__STATIC_INLINE float _electricalAngle(float shaft_angle, uint8_t pole_pairs){
+  return shaft_angle * pole_pairs;
 }
-
-
 
 #endif /* INC_FOC_UTILS_H_ */

@@ -37,28 +37,29 @@ uint16_t sineLUT[65] = {0, 804, 1607, 2410, 3211, 4011, 4807, 5601, 6392, 7179, 
  * @param[in] angle(radians)
  * @return sin(angle)
  */
-fix16_t _sin(fix16_t angle){
-  int32_t first, second;
-  fix16_t index = fix16_div(angle, FIX16_2PI) << SINELUT_WIDTH_BITS;
-  uint8_t frac = (uint8_t)((index & 0xFFFF) >> 8);
-  index >>= 16;
+float _sin(float angle){
 
-  if (index < SINELUT_QUAD_1){
-    first = (int32_t)sineLUT[index];
-    second = (int32_t)sineLUT[index + 1];
-  }
-  else if (index < SINELUT_QUAD_2){
-    first = (int32_t)sineLUT[SINELUT_WIDTH_HALF - index];
-    second = (int32_t)sineLUT[SINELUT_WIDTH_HALF - index - 1];
-  }
-  else if (index < SINELUT_QUAD_3){
-    first = -(int32_t)sineLUT[index - SINELUT_WIDTH_HALF];
-    second = -(int32_t)sineLUT[index - SINELUT_WIDTH_HALF + 1];
-  }
-  else {
-    first = -(int32_t)sineLUT[SINELUT_WIDTH - index];
-    second = -(int32_t)sineLUT[SINELUT_WIDTH - index - 1];
-  }
+   int32_t first, second;
+   uint16_t index = (uint16_t)(angle / _2PI * 65536.0f);
+   int frac = index & 0xff;
+   index = (index >> 8) & 0xff;
 
-  return (fix16_t)((first + (((second - first) * frac) >> 8)) << 1);
-}
+   if (index < 64){
+     first = (int32_t)sineLUT[index];
+     second = (int32_t)sineLUT[index + 1];
+   }
+   else if (index < 128){
+     first = (int32_t)sineLUT[128 - index];
+     second = (int32_t)sineLUT[127 - index];
+   }
+   else if (index < 192){
+     first = -(int32_t)sineLUT[index - 128];
+     second = -(int32_t)sineLUT[index - 127];
+   }
+   else {
+     first = -(int32_t)sineLUT[256 - index];
+     second = -(int32_t)sineLUT[255 - index];
+   }
+
+   return (first + (((second - first) * frac) >> 8)) / 32768.0f;
+ }

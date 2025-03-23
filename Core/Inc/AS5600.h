@@ -12,7 +12,7 @@
  * Includes
  */
 #include "stm32f4xx_hal.h" // for I2C
-
+#include "foc_hw.h"
 /*
  * Defines
  */
@@ -43,6 +43,7 @@ typedef struct{
 
 	// previous 12-bit angle
 	uint16_t prev_raw_angle;
+	uint8_t regdata[2];
 
 	// total angle in radians
 	float total_angle_rad;
@@ -54,20 +55,15 @@ typedef struct{
  * Initialization
  * Pass the struct to each function as pointer
  */
-uint8_t AS5600_Init(AS5600 *dev, I2C_HandleTypeDef *i2c_handle, uint8_t zero);
+uint8_t AS5600_Init(AS5600 *dev, I2C_HandleTypeDef *i2c_handle);
 void AS5600_ZeroAngle(AS5600* dev);
-
 
 /*
  * Read sensor value
  */
-float AS5600_ReadAngle(AS5600 *dev);
-uint16_t AS5600_ReadRawAngle(AS5600 *dev);
+float AS5600_UpdateAngle_DMA(AS5600 *dev);
+float AS5600_GetAngle(AS5600* dev);
+uint16_t AS5600_GetRawAngle(AS5600* dev);
 float AS5600_GetVelocity(AS5600* dev);
-
-__STATIC_INLINE float AS5600_ReadNormalizedAngle(AS5600 *dev)
-{
-	return AS5600_ReadRawAngle(dev) * BIT_TO_RAD;
-}
 
 #endif /* INC_AS5600_H_ */
