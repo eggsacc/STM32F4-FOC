@@ -19,7 +19,8 @@
 #include "stm32f4xx_hal_tim.h"
 #include "stm32f411xe.h"
 #include "timer_utils.h"
-#include "fix16.h"
+
+#define ADC_ENABLED 1
 
 /*
  * Typedef structures
@@ -66,6 +67,8 @@ typedef struct
 	int8_t sensor_dir;
 	uint8_t pole_pairs;
 
+	uint16_t phase_current[2];
+
 	float voltage_limit;
 	float supply_voltage;
 
@@ -85,13 +88,20 @@ typedef struct
 } BLDCMotor;
 
 /*
+ * Motors array
+ */
+extern BLDCMotor* BLDCMotorArray[2];
+extern uint16_t ADC_buff[4];
+
+/*
  * Public functions
  */
 void PWM_Start_3_Channel(TIM_HandleTypeDef* timer);
-void BLDCMotor_Init(BLDCMotor* motor, Var_t* var, DQ_t* dq, PV_t* pv, PID_t* pid, LPF_t* lpf, Ctrl_t* ctrl, TIM_HandleTypeDef* timer, uint8_t pole_pairs);
+void BLDCMotor_Init(BLDCMotor* motor, TIM_HandleTypeDef* timer, uint8_t pole_pairs);
 void LinkSensor(BLDCMotor* motor, AS5600* sensor, I2C_HandleTypeDef *i2c_handle);
-void BLDC_AutoCalibrate(BLDCMotor* motor);
+//void BLDC_AutoCalibrate(BLDCMotor* motor);
 void MotorDebug(BLDCMotor* motor);
 void SetTorque(BLDCMotor* motor);
+void BLDC_UpdateMotorADC_DMA();
 
 #endif /* INC_FOC_HW_H_ */

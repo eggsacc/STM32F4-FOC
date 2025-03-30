@@ -11,7 +11,6 @@ Timer utils requires DWT_Init() to be called in main.
 PLEASE FIX NOW
     
 HIGH PRIO
-- Make library optimised for 2 motors only
 - Current sense library
 - Serial commander support 2 motors
 - Figure out how to link serial commander input data to motor controls
@@ -24,6 +23,17 @@ LOW PRIO
                                                                                 UPDATES
 
 *****************************************************************************************************************************************************************************
+30/3/25
+- Resolved 43 error (phew!)
+- Implemented the BLDCMotorArray to hold pointers to 2 motor objects during initialization. Unused space is NULL by default.
+- Changed system time base to systick instead of TIM1. TIM1 triggers the callback function too frequently and interferes with other callback actions
+- Implemented fixed-frequency callback functions for I2C and ADC reads
+- ADC read works fine I think? Need to test I2C tomorrow 
+- ADC read stores the data in a buffer, which is then allocated to motor structs in a seperate callback function BLDC_UpdateMotorADC_DMA
+- I2C & ADC conv complete callbacks set the relevant flags in main program to signal data ready
+- Until now i have not tested if the motor controls even work like before... honestly not really looking forward to it cos i think its gonna fail big time
+- But overall pretty good progress I think!
+
 23/3/25
 - Alright actually wtf am I doing. Why did I always have the idea that the structs within the motor struct has to be manually allocated and referenced???
 - I can literally just make it such that the motor struct automatically creates those variables!!!!

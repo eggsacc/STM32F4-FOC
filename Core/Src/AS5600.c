@@ -16,6 +16,11 @@ __STATIC_INLINE HAL_StatusTypeDef AS5600_ReadRegister(AS5600 *dev, uint8_t reg, 
 	return HAL_I2C_Mem_Read(dev->i2cHandle, AS5600_I2C_ADD, reg, I2C_MEMADD_SIZE_8BIT, data, 1, 100);
 }
 
+__STATIC_INLINE HAL_StatusTypeDef AS5600_ReadRegisters(AS5600 *dev, uint8_t reg, uint8_t *data, uint8_t length)
+{
+	return HAL_I2C_Mem_Read(dev->i2cHandle, AS5600_I2C_ADD, reg, I2C_MEMADD_SIZE_8BIT, data, length, 100);
+}
+
 __STATIC_INLINE HAL_StatusTypeDef AS5600_ReadRegister_DMA(AS5600 *dev, uint8_t reg, uint8_t *data)
 {
 	return HAL_I2C_Mem_Read_DMA(dev->i2cHandle, AS5600_I2C_ADD, reg, I2C_MEMADD_SIZE_8BIT, data, 1);
@@ -25,11 +30,6 @@ __STATIC_INLINE HAL_StatusTypeDef AS5600_ReadRegisters_DMA(AS5600 *dev, uint8_t 
 {
 	return HAL_I2C_Mem_Read_DMA(dev->i2cHandle, AS5600_I2C_ADD, reg, I2C_MEMADD_SIZE_8BIT, data, length);
 }
-
-//static HAL_StatusTypeDef AS5600_WriteRegister(AS5600 *dev, uint8_t reg, uint8_t *data)
-//{
-//	return HAL_I2C_Mem_Write(dev->i2cHandle, AS5600_I2C_ADD, reg, I2C_MEMADD_SIZE_8BIT, data, 1, HAL_MAX_DELAY);
-//}
 
 /*
  * Utility functions
@@ -42,7 +42,7 @@ __STATIC_INLINE HAL_StatusTypeDef AS5600_ReadRegisters_DMA(AS5600 *dev, uint8_t 
 void AS5600_ZeroAngle(AS5600* dev)
 {
 	dev->total_angle_rad = 0;
-	dev->prev_raw_angle = AS5600_GetRawAngle(dev);
+	dev->prev_raw_angle = AS5600_GetRawAngle_Blocking(dev);
 }
 
 /*
@@ -77,18 +77,35 @@ uint8_t AS5600_Init(AS5600* dev, I2C_HandleTypeDef* i2c_handle)
 	return err_num;
 }
 
+/*
+ * @brief Blocking function to read AS5600 sensor raw angle
+ */
+uint16_t AS5600_GetRawAngle_Blocking(AS5600* dev)
+{
+	HAL_StatusTypeDef status = AS5600_ReadRegisters(dev, RAW_ANGLE_MSB_REG, dev->regdata, 2);
+
+	if(status != HAL_OK)
+	{
+		return 0;
+	}
+
+	uint16_t raw_angle = (((dev->regdata[0] & 0x0F) << 8) | dev->regdata[1]);
+	return raw_angle;
+}
+
+/*
+ * @brief Callback to start DMA transaction & update angle value
+ */
 void AS5600_UpdateAngle_DMA(AS5600 *dev)
 {
-	if(dev == NULL)
-	{
+	if(dev == NULL) {
 		return;
 	}
 
 	HAL_StatusTypeDef status = AS5600_ReadRegisters_DMA(dev, RAW_ANGLE_MSB_REG, dev->regdata, 2);
 
 	/* Return early if register read fails */
-	if(status != HAL_OK)
-	{
+	if(status != HAL_OK) {
 		return;
 	}
 
@@ -102,16 +119,13 @@ void AS5600_UpdateAngle_DMA(AS5600 *dev)
 	 * Positive large delta -> negative overflow
 	 * Negative large delta -> positive overflow
 	 */
-	if(delta > HALF_MAX_RESOLUTION)
-	{
+	if(delta > HALF_MAX_RESOLUTION) {
 		dev->total_angle_rad -= (MAX_RESOLUTION - delta) * BIT_TO_RAD;
 	}
-	else if(delta < -HALF_MAX_RESOLUTION)
-	{
+	else if(delta < -HALF_MAX_RESOLUTION) {
 		dev->total_angle_rad += (MAX_RESOLUTION + delta) * BIT_TO_RAD;
 	}
-	else
-	{
+	else {
 		dev->total_angle_rad += delta * BIT_TO_RAD;
 	}
 

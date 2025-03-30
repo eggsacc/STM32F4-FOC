@@ -12,7 +12,7 @@
  * Includes
  */
 #include "stm32f4xx_hal.h" // for I2C
-#include "foc_hw.h"
+
 /*
  * Defines
  */
@@ -61,8 +61,9 @@ void AS5600_ZeroAngle(AS5600* dev);
 /*
  * Read sensor value
  */
-float AS5600_UpdateAngle_DMA(AS5600 *dev);
+void AS5600_UpdateAngle_DMA(AS5600 *dev);
 float AS5600_GetAngle(AS5600* dev);
+uint16_t AS5600_GetRawAngle_Blocking(AS5600* dev);
 uint16_t AS5600_GetRawAngle(AS5600* dev);
 float AS5600_GetVelocity(AS5600* dev);
 

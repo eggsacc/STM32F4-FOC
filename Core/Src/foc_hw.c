@@ -20,6 +20,12 @@
 #include "pid.h"
 
 /*
+ * Motor array
+ */
+BLDCMotor* BLDCMotorArray[2] = {NULL};
+uint16_t ADC_buff[4] = {0};
+
+/*
  * @brief Starts PWM channels 1, 2, 3 of specified timer.
  * @param[in] TIM_HandleTypeDef timer
  */
@@ -41,6 +47,23 @@ __STATIC_INLINE void SetPWM(BLDCMotor* motor)
 	motor->timer->Instance->CCR1 = (motor->pv.Ua / motor->supply_voltage) * ARR;
 	motor->timer->Instance->CCR2 = (motor->pv.Ub / motor->supply_voltage) * ARR;
 	motor->timer->Instance->CCR3 = (motor->pv.Uc / motor->supply_voltage) * ARR;
+}
+
+/*
+ * @brief Update motor struct ADC values from ADC buffer
+ */
+void BLDC_UpdateMotorADC_DMA()
+{
+	if(BLDCMotorArray[0] != NULL)
+	{
+		BLDCMotorArray[0]->phase_current[0] = ADC_buff[0];
+		BLDCMotorArray[0]->phase_current[1] = ADC_buff[1];
+	}
+	if(BLDCMotorArray[1] != NULL)
+	{
+		BLDCMotorArray[1]->phase_current[0] = ADC_buff[2];
+		BLDCMotorArray[1]->phase_current[1] = ADC_buff[3];
+	}
 }
 
 /*
@@ -98,8 +121,24 @@ static PV_t PV_t_Init()
  */
 void BLDCMotor_Init(BLDCMotor* motor, TIM_HandleTypeDef* timer, uint8_t pole_pairs)
 {
+	/* Store motor in motor array, to be referenced by other functions globally */
+	if(BLDCMotorArray[0] == NULL)
+	{
+		BLDCMotorArray[0] = motor;
+	}
+	else if(BLDCMotorArray[1] == NULL)
+	{
+		BLDCMotorArray[1] = motor;
+	}
+	else
+	{
+		return;
+	}
+
 	motor->sensor_dir = 1;
 	motor->pole_pairs = pole_pairs;
+	motor->phase_current[0] = 0;
+	motor->phase_current[1] = 0;
 	motor->voltage_limit = 3;
 	motor->supply_voltage = 12;
 
@@ -114,6 +153,7 @@ void BLDCMotor_Init(BLDCMotor* motor, TIM_HandleTypeDef* timer, uint8_t pole_pai
 	motor->control = none;
 	motor->sensor = NULL;
 	motor->timer = timer;
+
 }
 
 /*
@@ -167,8 +207,10 @@ void LinkSensor(BLDCMotor* motor, AS5600* sensor, I2C_HandleTypeDef *i2c_handle)
 	HAL_Delay(1500);
 	AS5600_ZeroAngle(sensor);
 	motor->dq.Uq = 0;
-	motor->vars->shaft_angle = 0;
+	motor->vars.shaft_angle = 0;
 	SetTorque(motor);
+
+	AS5600_UpdateAngle_DMA(sensor);
 }
 
 /*
@@ -176,74 +218,74 @@ void LinkSensor(BLDCMotor* motor, AS5600* sensor, I2C_HandleTypeDef *i2c_handle)
  * @param[in] BLDCmotor* motor
  * @warning Does nothing if sensor or timer not attached to motor.
  */
-void BLDC_AutoCalibrate(BLDCMotor* motor)
-{
-	/* Check if encoder & timer attached */
-	if(motor->sensor == NULL || motor->timer == NULL)
-	{
-		return;
-	}
-
-	/* Mechanical angles */
-	float angle_a = 0;
-	float angle_b = 0;
-	float total = 0;
-
-	/* Set some current & electrical angle to 0 */
-	motor->dq->Uq = motor->supply_voltage >> 2;
-	motor->pole_pairs = 1;
-	motor->vars->shaft_angle = 0;
-	SetTorque(motor);
-	HAL_Delay(1500);
-	AS5600_ZeroAngle(motor->sensor);
-
-	/* Take 3 repeated mechanical angle readings */
-	for(int i = 0; i < 3; i++)
-	{
-		motor->vars->shaft_angle = FIX16_PI;
-		SetTorque(motor);
-		HAL_Delay(1500);
-		angle_a = AS5600_ReadAngle(motor->sensor);
-		HAL_Delay(500);
-
-		motor->vars->shaft_angle = FIX16_3PI_2;
-		SetTorque(motor);
-		HAL_Delay(1500);
-		angle_b = AS5600_ReadAngle(motor->sensor);
-		HAL_Delay(500);
-
-		total += angle_b - angle_a;
-	}
-
-	/* Calculate average mechanical angle delta */
-	float avg_delta = total / 5;
-
-	/* Set sensor angle inverter */
-	motor->sensor_dir = avg_delta > 0 ? 1 : -1;
-
-	if(avg_delta != 0)
-	{
-		uint8_t pole_pairs = round(_PI_2 / _abs(avg_delta));
-
-		/* Check if pole pair calculation is reasonable */
-		if(pole_pairs >= 5 || pole_pairs <= 14)
-		{
-			motor->pole_pairs = pole_pairs;
-		}
-	}
-
-	/* Set motor back to 0 angle */
-	motor->vars->shaft_angle = 0;
-	SetTorque(motor);
-
-	HAL_Delay(1000);
-
-	AS5600_ZeroAngle(motor->sensor);
-
-	/* Set 0 torque */
-	motor->dq->Uq = 0;
-	SetTorque(motor);
-}
+//void BLDC_AutoCalibrate(BLDCMotor* motor)
+//{
+//	/* Check if encoder & timer attached */
+//	if(motor->sensor == NULL || motor->timer == NULL)
+//	{
+//		return;
+//	}
+//
+//	/* Mechanical angles */
+//	float angle_a = 0;
+//	float angle_b = 0;
+//	float total = 0;
+//
+//	/* Set some current & electrical angle to 0 */
+//	motor->dq->Uq = motor->supply_voltage >> 2;
+//	motor->pole_pairs = 1;
+//	motor->vars->shaft_angle = 0;
+//	SetTorque(motor);
+//	HAL_Delay(1500);
+//	AS5600_ZeroAngle(motor->sensor);
+//
+//	/* Take 3 repeated mechanical angle readings */
+//	for(int i = 0; i < 3; i++)
+//	{
+//		motor->vars->shaft_angle = FIX16_PI;
+//		SetTorque(motor);
+//		HAL_Delay(1500);
+//		angle_a = AS5600_ReadAngle(motor->sensor);
+//		HAL_Delay(500);
+//
+//		motor->vars->shaft_angle = FIX16_3PI_2;
+//		SetTorque(motor);
+//		HAL_Delay(1500);
+//		angle_b = AS5600_ReadAngle(motor->sensor);
+//		HAL_Delay(500);
+//
+//		total += angle_b - angle_a;
+//	}
+//
+//	/* Calculate average mechanical angle delta */
+//	float avg_delta = total / 5;
+//
+//	/* Set sensor angle inverter */
+//	motor->sensor_dir = avg_delta > 0 ? 1 : -1;
+//
+//	if(avg_delta != 0)
+//	{
+//		uint8_t pole_pairs = round(_PI_2 / _abs(avg_delta));
+//
+//		/* Check if pole pair calculation is reasonable */
+//		if(pole_pairs >= 5 || pole_pairs <= 14)
+//		{
+//			motor->pole_pairs = pole_pairs;
+//		}
+//	}
+//
+//	/* Set motor back to 0 angle */
+//	motor->vars->shaft_angle = 0;
+//	SetTorque(motor);
+//
+//	HAL_Delay(1000);
+//
+//	AS5600_ZeroAngle(motor->sensor);
+//
+//	/* Set 0 torque */
+//	motor->dq->Uq = 0;
+//	SetTorque(motor);
+//}
 
 /*
  * @brief Debug motor parameters

@@ -60,6 +60,7 @@ UART_HandleTypeDef huart1;
 
 /* USER CODE BEGIN PV */
 uint8_t EVENT_FLAGS = 0;
+//extern BLDCMotor* BLDCMotorArray[2];
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -128,13 +129,18 @@ int main(void)
   BLDCMotor m1;
 
   /* Init motor object */
-  BLDC_Init(m1, htim2, 7);
+  BLDCMotor_Init(&m1, &htim2, 7);
 
   /* Attach sensor to motor object & initialize */
   LinkSensor(&m1, &s1, &hi2c1);
 
   SerialCommander_Init(&m1, NULL, &huart1);
 
+  if(ADC_ENABLED)
+  {
+  	HAL_ADC_Start_DMA(&hadc1, &ADC_buff, 4);
+  }
+  HAL_TIM_Base_Start_IT(&htim4);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -144,7 +150,7 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-	  SerialCommander_PollEvents();
+
   }
   /* USER CODE END 3 */
 }
@@ -483,7 +489,7 @@ static void MX_TIM4_Init(void)
   {
     Error_Handler();
   }
-  sMasterConfig.MasterOutputTrigger = TIM_TRGO_UPDATE;
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
   sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
   if (HAL_TIMEx_MasterConfigSynchronization(&htim4, &sMasterConfig) != HAL_OK)
   {
@@ -622,35 +628,41 @@ void HAL_I2C_MemRxCpltCallback(I2C_HandleTypeDef *hi2c)
 		EVENT_FLAGS |= I2C2_DMA_FLAG;
 	}
 }
-/* USER CODE END 4 */
 
-/**
-  * @brief  Period elapsed callback in non blocking mode
-  * @note   This function is called  when TIM1 interrupt took place, inside
-  * HAL_TIM_IRQHandler(). It makes a direct call to HAL_IncTick() to increment
-  * a global variable "uwTick" used as application time base.
-  * @param  htim : TIM handle
-  * @retval None
-  */
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
-  /* USER CODE BEGIN Callback 0 */
+    if (htim->Instance == TIM4)
+    {
+        if(ADC_ENABLED)
+        {
+        	if(EVENT_FLAGS & ADC_DMA_FLAG)
+        	{
+        		EVENT_FLAGS ^= ADC_DMA_FLAG;
+        		HAL_ADC_Start_DMA(&hadc1, &ADC_buff, 4);
+        		BLDC_UpdateMotorADC_DMA();
+        	}
+        }
 
-  /* USER CODE END Callback 0 */
-  if (htim->Instance == TIM1)
-  {
-    HAL_IncTick();
-  }
-  /* USER CODE BEGIN Callback 1 */
-  if(htim->Instance == TIM4)
-  {
-	  if(EVENT_FLAGS & I2C1_DMA_FLAG)
-	  {
-		  HAL_GPIO_TogglePin(GPIOx, GPIO_Pin)
-	  }
-  }
-  /* USER CODE END Callback 1 */
+        if(EVENT_FLAGS & I2C1_DMA_FLAG)
+        {
+        	if(BLDCMotorArray[0] != NULL && BLDCMotorArray[0]->sensor != NULL)
+        	{
+        		EVENT_FLAGS ^= I2C1_DMA_FLAG;
+        		AS5600_UpdateAngle_DMA(BLDCMotorArray[0]->sensor);
+        	}
+        }
+
+        if(EVENT_FLAGS & I2C2_DMA_FLAG)
+        {
+             if(BLDCMotorArray[1] != NULL && BLDCMotorArray[1]->sensor != NULL)
+             {
+            	EVENT_FLAGS ^= I2C2_DMA_FLAG;
+                AS5600_UpdateAngle_DMA(BLDCMotorArray[1]->sensor);
+             }
+        }
+    }
 }
+/* USER CODE END 4 */
 
 /**
   * @brief  This function is executed in case of error occurrence.

@@ -57,7 +57,6 @@ void PendSV_Handler(void);
 void SysTick_Handler(void);
 void DMA1_Stream0_IRQHandler(void);
 void DMA1_Stream1_IRQHandler(void);
-void TIM1_UP_TIM10_IRQHandler(void);
 void TIM4_IRQHandler(void);
 void USART1_IRQHandler(void);
 void DMA2_Stream0_IRQHandler(void);
