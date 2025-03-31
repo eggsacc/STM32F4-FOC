@@ -23,6 +23,10 @@ LOW PRIO
                                                                                 UPDATES
 
 *****************************************************************************************************************************************************************************
+31/3/25
+- Realised that the STM32F411 only has 1 advanced control timer? Idk if it really makes a difference in performance tho, might test it some day.
+- Tested the AS5600 DMA angle update callbacks, seems to work quite ok. 
+
 30/3/25
 - Resolved 43 error (phew!)
 - Implemented the BLDCMotorArray to hold pointers to 2 motor objects during initialization. Unused space is NULL by default.
