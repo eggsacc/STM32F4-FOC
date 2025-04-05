@@ -14,6 +14,14 @@
 /*
  * PID controller typedef
  */
+
+typedef enum
+{
+	P,
+	PI,
+	PID
+}PID_mode;
+
 typedef struct
 {
 	float kp;
@@ -30,7 +38,7 @@ typedef struct
 	uint32_t timestamp_us;
 
 	/* Mode: 0 = P, 1 = PI, 2 = PID (default) */
-	uint8_t mode;
+	PID_mode mode;
 }PID_t;
 
 /*

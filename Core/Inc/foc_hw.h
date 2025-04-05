@@ -20,8 +20,6 @@
 #include "stm32f411xe.h"
 #include "timer_utils.h"
 
-#define ADC_ENABLED 1
-
 /*
  * Typedef structures
  *
@@ -35,7 +33,7 @@ typedef struct
 {
 	float shaft_angle;
 	uint32_t prev_us;
-	uint16_t phase_current[2];
+	uint32_t phase_current[2];
 } Var_t;
 
 typedef struct
@@ -67,8 +65,6 @@ typedef struct
 	int8_t sensor_dir;
 	uint8_t pole_pairs;
 
-	uint16_t phase_current[2];
-
 	float voltage_limit;
 	float supply_voltage;
 
@@ -91,7 +87,7 @@ typedef struct
  * Motors array
  */
 extern BLDCMotor* BLDCMotorArray[2];
-extern uint16_t ADC_buff[4];
+extern uint32_t ADC_buff[4];
 
 /*
  * Public functions

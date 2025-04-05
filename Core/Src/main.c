@@ -36,6 +36,9 @@
 #define I2C1_DMA_FLAG 0x01
 #define I2C2_DMA_FLAG 0x02
 #define ADC_DMA_FLAG 0x04
+
+#define ADC_ENABLED 1
+#define UART_DEBUG 1
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -60,6 +63,11 @@ UART_HandleTypeDef huart1;
 
 /* USER CODE BEGIN PV */
 uint8_t EVENT_FLAGS = 0;
+#ifdef UART_DEBUG
+uint8_t UART_Debug_CallbackCounter = 0;
+#endif
+uint32_t timestamp;
+float freq;
 //extern BLDCMotor* BLDCMotorArray[2];
 /* USER CODE END PV */
 
@@ -123,34 +131,41 @@ int main(void)
   /* Start PWM channels */
   PWM_Start_3_Channel(&htim2);
 
+  /* DWT timer init (for micros) */
   DWT_Init();
+
   /* Create sensor & motor object */
   AS5600 s1;
   BLDCMotor m1;
 
   /* Init motor object */
   BLDCMotor_Init(&m1, &htim2, 7);
-
-  /* Attach sensor to motor object & initialize */
   LinkSensor(&m1, &s1, &hi2c1);
+  m1.supply_voltage = 12;
+  m1.voltage_limit = 3;
+  m1.sensor_dir = -1;
+  //SerialCommander_Init(&m1, NULL, &huart1);
 
-  SerialCommander_Init(&m1, NULL, &huart1);
+#ifdef ADC_ENABLED
+  	HAL_ADC_Start_DMA(&hadc1, ADC_buff, 4);
+#endif
 
-  if(ADC_ENABLED)
-  {
-  	HAL_ADC_Start_DMA(&hadc1, &ADC_buff, 4);
-  }
+  	/* Start tim4 periodic callback */
   HAL_TIM_Base_Start_IT(&htim4);
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+	  timestamp = micros();
+	  CLPositionControl(&m1, 2);
+	  freq = 1 / ((micros() - timestamp) * 0.000001);
+
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-
   }
   /* USER CODE END 3 */
 }
@@ -633,33 +648,56 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
     if (htim->Instance == TIM4)
     {
-        if(ADC_ENABLED)
+
+    	/* ADC conversion only if ADC enabled */
+#ifdef ADC_ENABLED
+
+        if(EVENT_FLAGS & ADC_DMA_FLAG)
         {
-        	if(EVENT_FLAGS & ADC_DMA_FLAG)
-        	{
-        		EVENT_FLAGS ^= ADC_DMA_FLAG;
-        		HAL_ADC_Start_DMA(&hadc1, &ADC_buff, 4);
-        		BLDC_UpdateMotorADC_DMA();
-        	}
+        	EVENT_FLAGS ^= ADC_DMA_FLAG;
+        	HAL_ADC_Start_DMA(&hadc1, ADC_buff, 4);
+        	BLDC_UpdateMotorADC_DMA();
         }
 
+#endif
+
+        /* Check I2C ch1 data receive complete */
         if(EVENT_FLAGS & I2C1_DMA_FLAG)
         {
         	if(BLDCMotorArray[0] != NULL && BLDCMotorArray[0]->sensor != NULL)
         	{
         		EVENT_FLAGS ^= I2C1_DMA_FLAG;
+
+        		/* Start new DMA read */
         		AS5600_UpdateAngle_DMA(BLDCMotorArray[0]->sensor);
         	}
         }
 
+        /* Check I2C ch2 data receive complete */
         if(EVENT_FLAGS & I2C2_DMA_FLAG)
         {
              if(BLDCMotorArray[1] != NULL && BLDCMotorArray[1]->sensor != NULL)
              {
             	EVENT_FLAGS ^= I2C2_DMA_FLAG;
+
+            	/* Start new DMA read */
                 AS5600_UpdateAngle_DMA(BLDCMotorArray[1]->sensor);
              }
         }
+
+        /* UART debug, only sends debug metrics every 100 periods (~20hz) */
+#ifdef UART_DEBUG
+
+        if(UART_Debug_CallbackCounter >= 100)
+        {
+        	return;
+        }
+        else
+        {
+        	UART_Debug_CallbackCounter++;
+        }
+#endif
+
     }
 }
 /* USER CODE END 4 */

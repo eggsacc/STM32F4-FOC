@@ -1,0 +1,6 @@
+../Core/Inc/foc_utils.h:74:23:_normalizeAngle	2
+../Core/Inc/timer_utils.h:34:26:micros	1
+../Core/Src/foc_core.c:19:6:BLDC_RunMode	10
+../Core/Src/foc_core.c:67:6:OLVelocityControl	3
+../Core/Src/foc_core.c:98:6:CLPositionControl	3
+../Core/Src/foc_core.c:126:6:CLVelocityControl	3

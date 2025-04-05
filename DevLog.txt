@@ -16,13 +16,26 @@ HIGH PRIO
 - Figure out how to link serial commander input data to motor controls
 
 LOW PRIO
-- Implement time check for function calls to run everything at ~1kHz
-- Use DMA for stuf like UART
+
 *****************************************************************************************************************************************************************************
 
                                                                                 UPDATES
 
 *****************************************************************************************************************************************************************************
+5/4/25
+- Made the AS5600 init function a little more comprehensive. The function now returns the error (if any) during init instead of just doing nothing when init fails
+- Now I see why I2C always fails on init...the function is testing for device prsence when the I2C handle pointer is still NULL. LOL
+- Found another bug: originally I used ((magnet_status & MAGNET_OK_MSK) != 1), but this is always true since the magnet ok mask bit is not in position 1.
+- Changed the expression to ((magnet_status & MAGNET_OK_MSK) == 0) instead
+- Idk what I even changed, but closed loop position works now...?
+- Also, a quick speed test reveals that the sensored position control loop now runs at almost 50kHz, compared to the previous 1kHz!!! WTF.
+
+4/4/25
+- Added some macros to signify if ADC is enabled. IDK if this was necessary, but some driver boards dont have sampling resistors so maybe.
+- Open loop velocity works, but why does closed loop just not work???
+- I alr tested the sensor periodic callbacks and it seems to work ok. The phase voltages calculated is also correct; Is it a hardware problem???
+- Check the I2C initialization sequences...theres also a issue where the sensor is always not initialized properly. Maybe implement repeated tries to reconnect sensor?
+
 31/3/25
 - Realised that the STM32F411 only has 1 advanced control timer? Idk if it really makes a difference in performance tho, might test it some day.
 - Tested the AS5600 DMA angle update callbacks, seems to work quite ok. 
@@ -245,12 +258,12 @@ LOW PRIO
 
 ### PWM Timers ###
 
-A0    TIM2_CH1
-A1    TIM2_CH2
+A5    TIM2_CH1
+B3    TIM2_CH2
 A2    TIM2_CH3
 
-A6    TIM3_CH1
-A7    TIM3_CH2
+B4    TIM3_CH1
+B5    TIM3_CH2
 B0    TIM3_CH3
 
 ### I2C/UART ###

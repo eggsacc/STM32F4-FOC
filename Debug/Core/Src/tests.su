@@ -1,0 +1,4 @@
+../Core/Inc/foc_utils.h:63:23:_cos	24	static
+../Core/Inc/fix16.h:49:25:float_to_fix16	16	static
+../Core/Inc/fix16.h:51:23:fix16_to_float	16	static
+../Core/Src/tests.c:15:6:Run_trigonometric_tests	32	static

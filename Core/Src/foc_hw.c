@@ -20,10 +20,10 @@
 #include "pid.h"
 
 /*
- * Motor array
+ * Motor array & ADC buffer
  */
 BLDCMotor* BLDCMotorArray[2] = {NULL};
-uint16_t ADC_buff[4] = {0};
+uint32_t ADC_buff[4] = {0};
 
 /*
  * @brief Starts PWM channels 1, 2, 3 of specified timer.
@@ -56,13 +56,13 @@ void BLDC_UpdateMotorADC_DMA()
 {
 	if(BLDCMotorArray[0] != NULL)
 	{
-		BLDCMotorArray[0]->phase_current[0] = ADC_buff[0];
-		BLDCMotorArray[0]->phase_current[1] = ADC_buff[1];
+		BLDCMotorArray[0]->vars.phase_current[0] = ADC_buff[0];
+		BLDCMotorArray[0]->vars.phase_current[1] = ADC_buff[1];
 	}
 	if(BLDCMotorArray[1] != NULL)
 	{
-		BLDCMotorArray[1]->phase_current[0] = ADC_buff[2];
-		BLDCMotorArray[1]->phase_current[1] = ADC_buff[3];
+		BLDCMotorArray[1]->vars.phase_current[0] = ADC_buff[2];
+		BLDCMotorArray[1]->vars.phase_current[1] = ADC_buff[3];
 	}
 }
 
@@ -137,8 +137,8 @@ void BLDCMotor_Init(BLDCMotor* motor, TIM_HandleTypeDef* timer, uint8_t pole_pai
 
 	motor->sensor_dir = 1;
 	motor->pole_pairs = pole_pairs;
-	motor->phase_current[0] = 0;
-	motor->phase_current[1] = 0;
+	motor->vars.phase_current[0] = 0;
+	motor->vars.phase_current[1] = 0;
 	motor->voltage_limit = 3;
 	motor->supply_voltage = 12;
 
@@ -172,7 +172,7 @@ void SetTorque(BLDCMotor* motor) {
 	float Ualpha = motor->dq.Uq * _cos(el_angle);
 	float Ubeta = motor->dq.Uq * _sin(el_angle);
 
-	float half_supply_v = motor->supply_voltage  / 2;
+	float half_supply_v = motor->supply_voltage / 2.0f;
 	float sqrt3_beta = Ubeta * _SQRT3;
 
 	/* Inverse Clarke transform */
@@ -201,8 +201,8 @@ void LinkSensor(BLDCMotor* motor, AS5600* sensor, I2C_HandleTypeDef *i2c_handle)
 
 	motor->sensor = sensor;
 
-	motor->dq.Uq = motor->voltage_limit / 2.0f;
-	motor->vars.shaft_angle = _2PI;
+	motor->dq.Uq = motor->voltage_limit;
+	motor->vars.shaft_angle = _3PI_2;
 	SetTorque(motor);
 	HAL_Delay(1500);
 	AS5600_ZeroAngle(sensor);

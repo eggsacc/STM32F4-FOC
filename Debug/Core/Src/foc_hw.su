@@ -1,0 +1,12 @@
+../Core/Inc/foc_utils.h:63:23:_cos	24	static
+../Core/Inc/foc_utils.h:74:23:_normalizeAngle	24	static
+../Core/Inc/foc_utils.h:87:23:_electricalAngle	16	static
+../Core/Src/foc_hw.c:32:6:PWM_Start_3_Channel	16	static
+../Core/Src/foc_hw.c:44:22:SetPWM	24	static
+../Core/Src/foc_hw.c:55:6:BLDC_UpdateMotorADC_DMA	4	static
+../Core/Src/foc_hw.c:74:14:Var_t_Init	32	static
+../Core/Src/foc_hw.c:86:13:DQ_t_Init	32	static
+../Core/Src/foc_hw.c:96:13:PV_t_Init	48	static
+../Core/Src/foc_hw.c:122:6:BLDCMotor_Init	88	static
+../Core/Src/foc_hw.c:164:6:SetTorque	48	static
+../Core/Src/foc_hw.c:191:6:LinkSensor	32	static

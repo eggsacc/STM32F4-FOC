@@ -35,6 +35,14 @@
 #define HALF_MAX_RESOLUTION 2047 // Half of 12-bit MAX
 
 /*
+ * Init status bitmasks
+ */
+#define MAGNET_OVERFLOW_MSK  (1 << 3)
+#define MAGNET_UNDERFLOW_MSK (1 << 4)
+#define MAGNET_OK_MSK         (1 << 5)
+#define AS5600_READY_MSK      1
+
+/*
  * Sensor struct
  */
 typedef struct{

@@ -31,6 +31,11 @@ __STATIC_INLINE HAL_StatusTypeDef AS5600_ReadRegisters_DMA(AS5600 *dev, uint8_t 
 	return HAL_I2C_Mem_Read_DMA(dev->i2cHandle, AS5600_I2C_ADD, reg, I2C_MEMADD_SIZE_8BIT, data, length);
 }
 
+__STATIC_INLINE HAL_StatusTypeDef AS5600_CheckSensor(AS5600* dev, uint32_t trials)
+{
+	return HAL_I2C_IsDeviceReady(dev->i2cHandle, AS5600_I2C_ADD, trials, 1000);
+}
+
 /*
  * Utility functions
  */
@@ -51,6 +56,8 @@ void AS5600_ZeroAngle(AS5600* dev)
  */
 uint8_t AS5600_Init(AS5600* dev, I2C_HandleTypeDef* i2c_handle)
 {
+	uint8_t init_status = 0;
+
 	/* Set struct params */
 	dev->i2cHandle = i2c_handle;
 	dev->total_angle_rad = 0;
@@ -58,23 +65,25 @@ uint8_t AS5600_Init(AS5600* dev, I2C_HandleTypeDef* i2c_handle)
 	dev->regdata[0] = 0;
 	dev->regdata[1] = 0;
 
-	uint8_t err_num = 0;
+	HAL_StatusTypeDef sensor_status = AS5600_CheckSensor(dev, 10);
 
-	/*
-	 * Check magnet strength
-	 */
-	uint8_t regdata = 0;
-
-	HAL_StatusTypeDef magnet_status = AS5600_ReadRegister(dev, MAGNET_STATUS_REG, &regdata);
-	err_num += (magnet_status != HAL_OK);
-
-	/* bit[5] indicates magnet present if set */
-	if(!(regdata & (1 << 5)))
+	if(sensor_status != HAL_OK)
 	{
-		return 255;
+		dev->i2cHandle = NULL;
+		return (init_status | AS5600_READY_MSK);
 	}
 
-	return err_num;
+	/* Check magnet strength */
+	uint8_t magnet_status = 0;
+
+	AS5600_ReadRegister(dev, MAGNET_STATUS_REG, &magnet_status);
+	if((magnet_status & MAGNET_OK_MSK) == 0)
+	{
+		dev->i2cHandle = NULL;
+		return (init_status | magnet_status);
+	}
+
+	return init_status;
 }
 
 /*

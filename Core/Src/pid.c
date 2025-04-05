@@ -31,7 +31,7 @@ PID_t PID_Init()
 		.lower_bound = -10,
 		.upper_bound = 10,
 		.timestamp_us = 0,
-		.mode = 2
+		.mode = P
 	};
 
 	return PID_dev;
@@ -50,14 +50,14 @@ float PID_Compute(PID_t* PID_dev, float setpoint, float input)
 	float error = setpoint - input;
 
 	/* Save time delta as uint32_t first to handle overflows naturally */
-	uint32_t dt_us = (now_us - PID_dev->timestamp_us) * 0.000001;
+	uint32_t dt_us = now_us - PID_dev->timestamp_us;
 	float dt = dt_us * 0.000001;
 
 	/* Proportional term calculation */
 	float p_term = PID_dev->kp * error;
 
 	/* If time delta is unreasonable, only return proportional term since it is not time-based */
-	if(dt <= 0 || dt > 0.2)
+	if(PID_dev->mode == P || dt <= 0 || dt > 0.2)
 	{
 		PID_dev->timestamp_us = now_us;
 		return p_term;
@@ -66,7 +66,7 @@ float PID_Compute(PID_t* PID_dev, float setpoint, float input)
 	/* Integral term calculation */
 	float i_term = 0;
 
-	if(PID_dev->mode == 1)
+	if(PID_dev->mode == PI)
 	{
 		/* Accumulate integral value using Riemann midpoint rule */
 		PID_dev->integral += PID_dev->ki * dt * 0.5f * (error + PID_dev->last_error);
@@ -77,7 +77,7 @@ float PID_Compute(PID_t* PID_dev, float setpoint, float input)
 	/* Derivative term calculation */
 	float d_term = 0;
 
-	if(PID_dev->mode == 2)
+	if(PID_dev->mode == PID)
 	{
 		/* If dt is too small, set to a reasonable value to avoid division by extremely small numbers */
 		if(dt < 0.00001f)

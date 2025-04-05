@@ -1,0 +1,4 @@
+../Core/Inc/fix16.h:55:26:fix16_abs	1
+../Core/Src/fix16.c:20:9:fix16_mul	4
+../Core/Src/fix16.c:55:16:clz	4
+../Core/Src/fix16.c:67:9:fix16_div	11

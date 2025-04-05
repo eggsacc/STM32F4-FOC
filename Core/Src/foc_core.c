@@ -97,22 +97,21 @@ void OLVelocityControl(BLDCMotor* motor, float target_velocity)
  */
 void CLPositionControl(BLDCMotor* motor, float target_pos)
 {
-	/* Check if sensor is attached to motor */
+	/* Check if motor has an encoder */
 	if(motor->sensor == NULL)
 	{
 		return;
 	}
 
 	/* Sets the PID controller to P-mode */
-	if(motor->pid.mode != 0)
+	if(motor->pid.mode != P)
 	{
-		motor->pid.mode = 0;
+		motor->pid.mode = P;
 	}
-
-	/* Electrical angle calculated based on sensor angle * pole pairs */
-	motor->vars.shaft_angle = (float)(motor->sensor_dir * AS5600_GetAngle(motor->sensor));
-	/* KP sets max torque when shaft is 45deg (0.7854 rad) off from target pos */
+//	float Kp = 0.8;
+	motor->vars.shaft_angle = AS5600_GetAngle(motor->sensor);
 	motor->dq.Uq = PID_Compute(&(motor->pid), target_pos, motor->sensor_dir * motor->vars.shaft_angle);
+//	motor->dq.Uq = Kp * (target_pos - (motor->sensor_dir * motor->vars.shaft_angle));
 	SetTorque(motor);
 }
 
@@ -133,9 +132,9 @@ void CLVelocityControl(BLDCMotor* motor, float target_velocity)
 	}
 
 	/* Set PID controller to PI-mode */
-	if(motor->pid.mode != 1)
+	if(motor->pid.mode != PI)
 	{
-		motor->pid.mode = 1;
+		motor->pid.mode = PI;
 	}
 
 	/* Compute torque based on velocity error */
