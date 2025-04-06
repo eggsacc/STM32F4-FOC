@@ -1,4 +1,6 @@
-Core/Src/main.o: ../Core/Src/main.c ../Core/Inc/main.h \
+Drivers/OLED/Src/ssd1306.o: ../Drivers/OLED/Src/ssd1306.c \
+ C:/Users/yizha/STM32CubeIDE/workspace_1.17.0/STM32F411_FOC/Drivers/OLED/Inc/ssd1306.h \
+ C:/Users/yizha/STM32CubeIDE/workspace_1.17.0/STM32F411_FOC/Drivers/OLED/Inc/ssd1306_conf.h \
  ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal.h \
  ../Core/Inc/stm32f4xx_hal_conf.h \
  ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_rcc.h \
@@ -31,18 +33,9 @@ Core/Src/main.o: ../Core/Src/main.c ../Core/Inc/main.h \
  ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_pwr_ex.h \
  ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_tim.h \
  ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_tim_ex.h \
- ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_uart.h \
- ../Core/Inc/foc_core.h ../Core/Inc/foc_hw.h \
- ../Core/Inc/low_pass_filter.h ../Core/Inc/foc_utils.h \
- ../Core/Inc/AS5600.h ../Core/Inc/pid.h \
- ../Drivers/CMSIS/Device/ST/STM32F4xx/Include/stm32f411xe.h \
- ../Core/Inc/timer_utils.h ../Core/Inc/main.h \
- ../Core/Inc/serial_commander.h ../Core/Inc/foc_core.h \
- C:/Users/yizha/STM32CubeIDE/workspace_1.17.0/STM32F411_FOC/Drivers/OLED/Inc/ssd1306.h \
- C:/Users/yizha/STM32CubeIDE/workspace_1.17.0/STM32F411_FOC/Drivers/OLED/Inc/ssd1306_conf.h \
- C:/Users/yizha/STM32CubeIDE/workspace_1.17.0/STM32F411_FOC/Drivers/OLED/Inc/ssd1306_fonts.h \
- C:/Users/yizha/STM32CubeIDE/workspace_1.17.0/STM32F411_FOC/Drivers/OLED/Inc/ssd1306.h
-../Core/Inc/main.h:
+ ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_uart.h
+C:/Users/yizha/STM32CubeIDE/workspace_1.17.0/STM32F411_FOC/Drivers/OLED/Inc/ssd1306.h:
+C:/Users/yizha/STM32CubeIDE/workspace_1.17.0/STM32F411_FOC/Drivers/OLED/Inc/ssd1306_conf.h:
 ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal.h:
 ../Core/Inc/stm32f4xx_hal_conf.h:
 ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_rcc.h:
@@ -76,18 +69,3 @@ Core/Src/main.o: ../Core/Src/main.c ../Core/Inc/main.h \
 ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_tim.h:
 ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_tim_ex.h:
 ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_uart.h:
-../Core/Inc/foc_core.h:
-../Core/Inc/foc_hw.h:
-../Core/Inc/low_pass_filter.h:
-../Core/Inc/foc_utils.h:
-../Core/Inc/AS5600.h:
-../Core/Inc/pid.h:
-../Drivers/CMSIS/Device/ST/STM32F4xx/Include/stm32f411xe.h:
-../Core/Inc/timer_utils.h:
-../Core/Inc/main.h:
-../Core/Inc/serial_commander.h:
-../Core/Inc/foc_core.h:
-C:/Users/yizha/STM32CubeIDE/workspace_1.17.0/STM32F411_FOC/Drivers/OLED/Inc/ssd1306.h:
-C:/Users/yizha/STM32CubeIDE/workspace_1.17.0/STM32F411_FOC/Drivers/OLED/Inc/ssd1306_conf.h:
-C:/Users/yizha/STM32CubeIDE/workspace_1.17.0/STM32F411_FOC/Drivers/OLED/Inc/ssd1306_fonts.h:
-C:/Users/yizha/STM32CubeIDE/workspace_1.17.0/STM32F411_FOC/Drivers/OLED/Inc/ssd1306.h:

@@ -24,6 +24,8 @@
 #include "foc_core.h"
 #include "serial_commander.h"
 #include <string.h>
+#include "ssd1306.h"
+#include "ssd1306_fonts.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -39,6 +41,7 @@
 
 #define ADC_ENABLED 1
 #define UART_DEBUG 1
+#define OLED 1
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -54,6 +57,8 @@ I2C_HandleTypeDef hi2c1;
 I2C_HandleTypeDef hi2c2;
 DMA_HandleTypeDef hdma_i2c1_rx;
 DMA_HandleTypeDef hdma_i2c1_tx;
+DMA_HandleTypeDef hdma_i2c2_rx;
+DMA_HandleTypeDef hdma_i2c2_tx;
 
 TIM_HandleTypeDef htim2;
 TIM_HandleTypeDef htim3;
@@ -65,6 +70,9 @@ UART_HandleTypeDef huart1;
 uint8_t EVENT_FLAGS = 0;
 #ifdef UART_DEBUG
 uint8_t UART_Debug_CallbackCounter = 0;
+#endif
+#ifdef OLED
+uint8_t OLED_CallbackCounter = 0;
 #endif
 uint32_t timestamp;
 float freq;
@@ -153,15 +161,19 @@ int main(void)
   	/* Start tim4 periodic callback */
   HAL_TIM_Base_Start_IT(&htim4);
 
+  ssd1306_Init();
+  ssd1306_WriteString("Wussup!!", Font_7x10, White);
+  ssd1306_UpdateScreen();
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	  timestamp = micros();
-	  CLPositionControl(&m1, 2);
-	  freq = 1 / ((micros() - timestamp) * 0.000001);
+//	  timestamp = micros();
+//	  CLPositionControl(&m1, 2);
+//	  freq = 1 / ((micros() - timestamp) * 0.000001);
 
     /* USER CODE END WHILE */
 
@@ -574,6 +586,12 @@ static void MX_DMA_Init(void)
   /* DMA1_Stream1_IRQn interrupt configuration */
   HAL_NVIC_SetPriority(DMA1_Stream1_IRQn, 0, 0);
   HAL_NVIC_EnableIRQ(DMA1_Stream1_IRQn);
+  /* DMA1_Stream2_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA1_Stream2_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA1_Stream2_IRQn);
+  /* DMA1_Stream7_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA1_Stream7_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA1_Stream7_IRQn);
   /* DMA2_Stream0_IRQn interrupt configuration */
   HAL_NVIC_SetPriority(DMA2_Stream0_IRQn, 0, 0);
   HAL_NVIC_EnableIRQ(DMA2_Stream0_IRQn);
@@ -641,7 +659,21 @@ void HAL_I2C_MemRxCpltCallback(I2C_HandleTypeDef *hi2c)
 	else if(hi2c->Instance == I2C2)
 	{
 		EVENT_FLAGS |= I2C2_DMA_FLAG;
+
+#ifdef OLED
+		if(OLED_CallbackCounter >= 200)
+		{
+			EVENT_FLAGS &= (~I2C2_DMA_FLAG);
+
+		}
+#endif
+
 	}
+}
+
+void HAL_I2C_MemTxCpltCallback(I2C_HandleTypeDef *hi2c)
+{
+
 }
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
@@ -654,7 +686,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 
         if(EVENT_FLAGS & ADC_DMA_FLAG)
         {
-        	EVENT_FLAGS ^= ADC_DMA_FLAG;
+        	EVENT_FLAGS &= (~ADC_DMA_FLAG);
         	HAL_ADC_Start_DMA(&hadc1, ADC_buff, 4);
         	BLDC_UpdateMotorADC_DMA();
         }
@@ -666,7 +698,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
         {
         	if(BLDCMotorArray[0] != NULL && BLDCMotorArray[0]->sensor != NULL)
         	{
-        		EVENT_FLAGS ^= I2C1_DMA_FLAG;
+        		EVENT_FLAGS &= (~I2C1_DMA_FLAG);
 
         		/* Start new DMA read */
         		AS5600_UpdateAngle_DMA(BLDCMotorArray[0]->sensor);
@@ -678,7 +710,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
         {
              if(BLDCMotorArray[1] != NULL && BLDCMotorArray[1]->sensor != NULL)
              {
-            	EVENT_FLAGS ^= I2C2_DMA_FLAG;
+            	EVENT_FLAGS &= (~I2C2_DMA_FLAG);
 
             	/* Start new DMA read */
                 AS5600_UpdateAngle_DMA(BLDCMotorArray[1]->sensor);

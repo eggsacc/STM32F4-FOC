@@ -9,7 +9,9 @@ Timer utils requires DWT_Init() to be called in main.
 *****************************************************************************************************************************************************************************
 
 PLEASE FIX NOW
-    
+- Test OLED DMA write
+- Finish oled library formatting & callback function
+
 HIGH PRIO
 - Current sense library
 - Serial commander support 2 motors
@@ -22,6 +24,13 @@ LOW PRIO
                                                                                 UPDATES
 
 *****************************************************************************************************************************************************************************
+6/4/25 
+- (Hardware) Added an OLED panel to the driver board! Now I can display some funny stuff
+- All the OLEd related code is under the "Drivers" folder, not "Core".
+- Added library "oled.h" that handles formatting graphics buffer to print motor parameters
+- Still figuring out how to format the params properly to be printed
+- Changed OLED library I2C write to use DMA, yet to be tested
+
 5/4/25
 - Made the AS5600 init function a little more comprehensive. The function now returns the error (if any) during init instead of just doing nothing when init fails
 - Now I see why I2C always fails on init...the function is testing for device prsence when the I2C handle pointer is still NULL. LOL
