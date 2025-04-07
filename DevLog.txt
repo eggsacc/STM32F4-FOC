@@ -9,7 +9,7 @@ Timer utils requires DWT_Init() to be called in main.
 *****************************************************************************************************************************************************************************
 
 PLEASE FIX NOW
-- Test OLED DMA write
+- Test OLED DMA write (dosnt work)
 - Finish oled library formatting & callback function
 
 HIGH PRIO
@@ -24,6 +24,25 @@ LOW PRIO
                                                                                 UPDATES
 
 *****************************************************************************************************************************************************************************
+7/4/25
+- OLED DMA doesn't work, dunno why. Maybe some parts of the library relies on blocking mode to get set some variables first? Will look into it later
+- Also a quick benchmark for the OLED driver reveals that it can only run at about ~7Hz???? (Which is EXTREMELY slow)
+- Configured both the I2C busses to fast mode (400kHz), seems like both AS5600 & SSD1306 supports fast mode.
+- Caculations for how long one OLED update takes:
+  - Fast mode (400kHz), each bit takes 1/400k = 2.5us to transmit
+  - Data frame consists of START -> ADDR + RW (8-bits) -> ACK(1-bit) -> DATA BYTE(8-bits) -> ACK ...STOP
+  - In each ssd1306_UpdateScreen() call:
+    - 24x 1-byte I2C command write = 18 x (8 + 1 + 8 + 1) = 432bits
+    - 8x 128-byte I2C page data write = 8 x (8 + 9 * 128 + 1) = 9288 bits
+  - Total time = (432 + 9288)bits * 2.5us/bit = 24300us
+  - It takes 24.3 milliseconds just to update the graphics buffer once!!! And we have not even accounted for all the expensive mem copies to move data into the buffer!!
+- Conclusion: This library is very extremely exceptionally tremendously slow.
+- I saw that someone implemented what seemed like a state machine within the library to use DMA: 
+- https://github.com/afiskon/stm32-ssd1306/pull/93/files#diff-3725f399cda0bb753bab5bbb0f40d5f98e53e3131e1ae4ed1a3c61fdd51842fb
+- Maybe I'll try to modify the library to support something similar? 
+- Basically add some flags to track DMA completion, and just slowly initiate DMA transactions whenever the bus is ready.
+- Also, since most parts of the screen would be static, implement a partial updater function instead of updating all 64x128 pixels every time
+
 6/4/25 
 - (Hardware) Added an OLED panel to the driver board! Now I can display some funny stuff
 - All the OLEd related code is under the "Drivers" folder, not "Core".

@@ -24,6 +24,7 @@
 #include "foc_core.h"
 #include "serial_commander.h"
 #include <string.h>
+#include "oled.h"
 #include "ssd1306.h"
 #include "ssd1306_fonts.h"
 /* USER CODE END Includes */
@@ -161,10 +162,15 @@ int main(void)
   	/* Start tim4 periodic callback */
   HAL_TIM_Base_Start_IT(&htim4);
 
+  //OLED_Init();
   ssd1306_Init();
-  ssd1306_WriteString("Wussup!!", Font_7x10, White);
+  ssd1306_Fill(Black);
+  ssd1306_WriteString("Hello world!", Font_7x10, White);
   ssd1306_UpdateScreen();
-
+  HAL_Delay(2000);
+  ssd1306_Fill(Black);
+  ssd1306_UpdateScreen();
+  HAL_Delay(2000);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -174,7 +180,9 @@ int main(void)
 //	  timestamp = micros();
 //	  CLPositionControl(&m1, 2);
 //	  freq = 1 / ((micros() - timestamp) * 0.000001);
-
+	  timestamp = micros();
+	  OLED_UpdateDMA(BLDCMotorArray);
+	  freq = 1 / ((micros() - timestamp) * 0.000001);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -322,7 +330,7 @@ static void MX_I2C1_Init(void)
 
   /* USER CODE END I2C1_Init 1 */
   hi2c1.Instance = I2C1;
-  hi2c1.Init.ClockSpeed = 100000;
+  hi2c1.Init.ClockSpeed = 400000;
   hi2c1.Init.DutyCycle = I2C_DUTYCYCLE_2;
   hi2c1.Init.OwnAddress1 = 0;
   hi2c1.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
@@ -356,7 +364,7 @@ static void MX_I2C2_Init(void)
 
   /* USER CODE END I2C2_Init 1 */
   hi2c2.Instance = I2C2;
-  hi2c2.Init.ClockSpeed = 100000;
+  hi2c2.Init.ClockSpeed = 400000;
   hi2c2.Init.DutyCycle = I2C_DUTYCYCLE_2;
   hi2c2.Init.OwnAddress1 = 0;
   hi2c2.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
@@ -659,21 +667,7 @@ void HAL_I2C_MemRxCpltCallback(I2C_HandleTypeDef *hi2c)
 	else if(hi2c->Instance == I2C2)
 	{
 		EVENT_FLAGS |= I2C2_DMA_FLAG;
-
-#ifdef OLED
-		if(OLED_CallbackCounter >= 200)
-		{
-			EVENT_FLAGS &= (~I2C2_DMA_FLAG);
-
-		}
-#endif
-
 	}
-}
-
-void HAL_I2C_MemTxCpltCallback(I2C_HandleTypeDef *hi2c)
-{
-
 }
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
@@ -730,6 +724,18 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
         }
 #endif
 
+#ifdef OLED
+
+        if(OLED_CallbackCounter >= 100 && (EVENT_FLAGS & I2C2_DMA_FLAG))
+        {
+        	OLED_CallbackCounter = 0;
+        	EVENT_FLAGS &= (~I2C2_DMA_FLAG);
+        	OLED_UpdateDMA(BLDCMotorArray);
+        }
+        else {
+        	OLED_CallbackCounter++;
+        }
+#endif
     }
 }
 /* USER CODE END 4 */
