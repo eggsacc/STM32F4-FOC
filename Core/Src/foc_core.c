@@ -16,7 +16,7 @@
  * @param[in] BLDCMotor* m1
  * @note Set other motor ptr to NULL if only using 1 motor
  */
-void BLDC_RunMode(BLDCMotor* m0, BLDCMotor* m1)
+void SerialCommander_RunMode(BLDCMotor* m0, BLDCMotor* m1)
 {
 	if(m0 != NULL)
 	{

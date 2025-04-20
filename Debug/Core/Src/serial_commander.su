@@ -1,4 +1,7 @@
-../Core/Src/serial_commander.c:39:15:SerialCommander_Init	24	static
-../Core/Src/serial_commander.c:51:6:HAL_UARTEx_RxEventCallback	16	static
-../Core/Src/serial_commander.c:73:15:Serial_Print	24	static
-../Core/Src/serial_commander.c:83:6:SerialCommander_PollEvents	16	static
+../Core/Src/serial_commander.c:40:15:SerialCommander_Init	16	static
+../Core/Src/serial_commander.c:52:6:HAL_UARTEx_RxEventCallback	16	static
+../Core/Src/serial_commander.c:74:15:Serial_Print	24	static
+../Core/Src/serial_commander.c:86:15:SerialCommander_ParseControlType	24	static
+../Core/Src/serial_commander.c:126:16:SerialCommander_ParseCommand	64	static
+../Core/Src/serial_commander.c:187:16:SerialCommander_SetMotorParam	32	static
+../Core/Src/serial_commander.c:235:6:SerialCommander_PollCommands	40	static

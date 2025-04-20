@@ -24,6 +24,16 @@ LOW PRIO
                                                                                 UPDATES
 
 *****************************************************************************************************************************************************************************
+20/4/25:
+- After a looooong break...im back
+- Finally completed serial commander interface! Havn't test yet though.
+- Learned quite a few things about working with string methods in C, pretty enlightening overall.
+- A few potential improvements (thanks chatgpt):
+  - typedef enum for serial states, instead of using 1 & 0s
+  - Abbreviations & fuzzy matching for some longer commands? 
+  - Implement help, or ? command that lists all the possible parameters to adjust
+- This library is actually really fun to work on ngl.
+
 7/4/25
 - OLED DMA doesn't work, dunno why. Maybe some parts of the library relies on blocking mode to get set some variables first? Will look into it later
 - Also a quick benchmark for the OLED driver reveals that it can only run at about ~7Hz???? (Which is EXTREMELY slow)

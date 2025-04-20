@@ -51,6 +51,7 @@ typedef struct
 
 typedef enum
 {
+	error,
 	none,
 	open_loop_velocity,
 	closed_loop_position_no_cs,

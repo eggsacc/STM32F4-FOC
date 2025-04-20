@@ -40,9 +40,9 @@
 #define I2C2_DMA_FLAG 0x02
 #define ADC_DMA_FLAG 0x04
 
-#define ADC_ENABLED 1
-#define UART_DEBUG 1
-#define OLED 1
+//#define ADC_ENABLED 1
+//#define UART_DEBUG 1
+//#define OLED 1
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -66,6 +66,8 @@ TIM_HandleTypeDef htim3;
 TIM_HandleTypeDef htim4;
 
 UART_HandleTypeDef huart1;
+DMA_HandleTypeDef hdma_usart1_rx;
+DMA_HandleTypeDef hdma_usart1_tx;
 
 /* USER CODE BEGIN PV */
 uint8_t EVENT_FLAGS = 0;
@@ -153,7 +155,8 @@ int main(void)
   m1.supply_voltage = 12;
   m1.voltage_limit = 3;
   m1.sensor_dir = -1;
-  //SerialCommander_Init(&m1, NULL, &huart1);
+  m1.pid.kp = 4;
+  SerialCommander_Init(&huart1);
 
 #ifdef ADC_ENABLED
   	HAL_ADC_Start_DMA(&hadc1, ADC_buff, 4);
@@ -162,27 +165,14 @@ int main(void)
   	/* Start tim4 periodic callback */
   HAL_TIM_Base_Start_IT(&htim4);
 
-  //OLED_Init();
-  ssd1306_Init();
-  ssd1306_Fill(Black);
-  ssd1306_WriteString("Hello world!", Font_7x10, White);
-  ssd1306_UpdateScreen();
-  HAL_Delay(2000);
-  ssd1306_Fill(Black);
-  ssd1306_UpdateScreen();
-  HAL_Delay(2000);
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-//	  timestamp = micros();
-//	  CLPositionControl(&m1, 2);
-//	  freq = 1 / ((micros() - timestamp) * 0.000001);
-	  timestamp = micros();
-	  OLED_UpdateDMA(BLDCMotorArray);
-	  freq = 1 / ((micros() - timestamp) * 0.000001);
+	  SerialCommander_PollCommands();
+
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -603,6 +593,12 @@ static void MX_DMA_Init(void)
   /* DMA2_Stream0_IRQn interrupt configuration */
   HAL_NVIC_SetPriority(DMA2_Stream0_IRQn, 0, 0);
   HAL_NVIC_EnableIRQ(DMA2_Stream0_IRQn);
+  /* DMA2_Stream2_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA2_Stream2_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA2_Stream2_IRQn);
+  /* DMA2_Stream7_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA2_Stream7_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA2_Stream7_IRQn);
 
 }
 
