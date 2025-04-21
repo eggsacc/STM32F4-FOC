@@ -13,6 +13,9 @@
 
 extern BLDCMotor* BLDCMotorArray[2];
 
+/*
+ * Function prototypes
+ */
 void Serial_Print(const char* s);
 void SerialCommander_PollCommands();
 void SerialCommander_Init(UART_HandleTypeDef* huart);

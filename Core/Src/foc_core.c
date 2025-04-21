@@ -9,6 +9,7 @@
 #include "foc_hw.h"
 #include "foc_core.h"
 #include "pid.h"
+#include <math.h>
 
 /*
  * @brief Run motor using configured control type
@@ -103,11 +104,6 @@ void CLPositionControl(BLDCMotor* motor, float target_pos)
 		return;
 	}
 
-	/* Sets the PID controller to P-mode */
-	if(motor->pid.mode != P)
-	{
-		motor->pid.mode = P;
-	}
 //	float Kp = 0.8;
 	motor->vars.shaft_angle = AS5600_GetAngle(motor->sensor);
 	motor->dq.Uq = PID_Compute(&(motor->pid), target_pos, motor->sensor_dir * motor->vars.shaft_angle);
@@ -141,4 +137,26 @@ void CLVelocityControl(BLDCMotor* motor, float target_velocity)
 	motor->dq.Uq = PID_Compute(&(motor->pid), target_velocity, LPF_Compute(&(motor->lpf), AS5600_GetVelocity(motor->sensor)));
 	motor->vars.shaft_angle = AS5600_GetAngle(motor->sensor);
 	SetTorque(motor);
+}
+
+/*
+ * @brief Virtual detent simulation
+ * @param[in] BLDCMotor* motor
+ * @param[in] uint8_t number of virtual detents
+ */
+void Haptic_Virtual_Detents(BLDCMotor* motor, uint8_t divisions)
+{
+	float step = _2PI / (float)divisions;
+	float angle = AS5600_GetAngle(motor->sensor);
+	uint8_t nearest_point = round(angle / step);
+	float target_angle = nearest_point * step;
+	float error = fabs(angle - target_angle);
+	if(target_angle > 0.5)
+	{
+		CLPositionControl(motor, target_angle);
+	}
+	else
+	{
+		CLPositionControl(motor, angle);
+	}
 }

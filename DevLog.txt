@@ -24,6 +24,9 @@ LOW PRIO
                                                                                 UPDATES
 
 *****************************************************************************************************************************************************************************
+21/4/25:
+- Added a virtual detent simulation function
+
 20/4/25:
 - After a looooong break...im back
 - Finally completed serial commander interface! Havn't test yet though.
