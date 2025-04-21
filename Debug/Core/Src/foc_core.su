@@ -1,6 +1,7 @@
 ../Core/Inc/foc_utils.h:74:23:_normalizeAngle	24	static
 ../Core/Inc/timer_utils.h:34:26:micros	4	static
-../Core/Src/foc_core.c:19:6:SerialCommander_RunMode	16	static
-../Core/Src/foc_core.c:67:6:OLVelocityControl	32	static
-../Core/Src/foc_core.c:98:6:CLPositionControl	16	static
-../Core/Src/foc_core.c:126:6:CLVelocityControl	24	static
+../Core/Src/foc_core.c:22:6:SerialCommander_RunMode	16	static
+../Core/Src/foc_core.c:70:6:OLVelocityControl	32	static
+../Core/Src/foc_core.c:101:6:CLPositionControl	16	static
+../Core/Src/foc_core.c:122:6:CLVelocityControl	24	static
+../Core/Src/foc_core.c:147:6:Haptic_Virtual_Detents	40	static

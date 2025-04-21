@@ -73,7 +73,7 @@ void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
  */
 __INLINE void Serial_Print(const char* s)
 {
-	HAL_UART_Transmit_DMA(serial_dev.uart, s, strlen(s));
+	HAL_UART_Transmit(serial_dev.uart, s, strlen(s), HAL_MAX_DELAY);
 }
 
 /* @scope Static

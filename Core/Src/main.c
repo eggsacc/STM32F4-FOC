@@ -153,9 +153,10 @@ int main(void)
   BLDCMotor_Init(&m1, &htim2, 7);
   LinkSensor(&m1, &s1, &hi2c1);
   m1.supply_voltage = 12;
-  m1.voltage_limit = 3;
+  m1.voltage_limit = 5;
   m1.sensor_dir = -1;
   m1.pid.kp = 4;
+  m1.pid.mode = P;
   SerialCommander_Init(&huart1);
 
 #ifdef ADC_ENABLED
@@ -171,7 +172,8 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	  SerialCommander_PollCommands();
+	  Haptic_Virtual_Detents(&m1, 54);
+
 
     /* USER CODE END WHILE */
 

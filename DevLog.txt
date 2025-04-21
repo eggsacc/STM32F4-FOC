@@ -9,6 +9,7 @@ Timer utils requires DWT_Init() to be called in main.
 *****************************************************************************************************************************************************************************
 
 PLEASE FIX NOW
+- PID library
 - Test OLED DMA write (dosnt work)
 - Finish oled library formatting & callback function
 
@@ -26,6 +27,9 @@ LOW PRIO
 *****************************************************************************************************************************************************************************
 21/4/25:
 - Added a virtual detent simulation function
+- I think there's something wrong with the PID library. Using PID in close loop position does not work for some reason.
+- But if I change it to generate a torque proportional to error (which is what the PID lib is supposed to do), it works fine.
+- What's wrong??
 
 20/4/25:
 - After a looooong break...im back
