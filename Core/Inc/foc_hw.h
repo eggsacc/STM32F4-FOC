@@ -33,7 +33,7 @@ typedef struct
 {
 	float shaft_angle;
 	uint32_t prev_us;
-	uint32_t phase_current[2];
+	uint16_t phase_current_buff[2];
 } Var_t;
 
 typedef struct
@@ -48,6 +48,14 @@ typedef struct
 	float Ub;
 	float Uc;
 } PV_t;
+
+typedef struct
+{
+	float Ia;
+	float Ib;
+	float Ic;
+} PI_t;
+
 
 typedef enum
 {
@@ -72,11 +80,20 @@ typedef struct
 	/* Target variables for serial commander */
 	float target_velocity;
 	float target_pos;
+	float target_current;
+
+	/* Current sense parameters */
+	float cs_gain_a;
+	float cs_gain_b;
+	float cs_gain_c;
+	uint16_t cs_offset_ia;
+	uint16_t cs_offset_ib;
 
 	/* Sub-structs */
 	Var_t vars;
 	DQ_t dq;
 	PV_t pv;
+	PI_t pi;
 	PID_t pid;
 	LPF_t lpf;
 	Ctrl_t control;
@@ -88,7 +105,6 @@ typedef struct
  * Motors array
  */
 extern BLDCMotor* BLDCMotorArray[2];
-extern uint32_t ADC_buff[4];
 
 /*
  * Public functions

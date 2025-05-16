@@ -36,7 +36,7 @@ Core/Src/main.o: ../Core/Src/main.c ../Core/Inc/main.h \
  ../Core/Inc/low_pass_filter.h ../Core/Inc/foc_utils.h \
  ../Core/Inc/AS5600.h ../Core/Inc/pid.h \
  ../Drivers/CMSIS/Device/ST/STM32F4xx/Include/stm32f411xe.h \
- ../Core/Inc/timer_utils.h ../Core/Inc/main.h \
+ ../Core/Inc/timer_utils.h ../Core/Inc/main.h ../Core/Inc/current_sense.h \
  ../Core/Inc/serial_commander.h ../Core/Inc/foc_core.h ../Core/Inc/oled.h \
  C:/Users/yizha/STM32CubeIDE/workspace_1.17.0/STM32F411_FOC/Drivers/OLED/Inc/ssd1306.h \
  C:/Users/yizha/STM32CubeIDE/workspace_1.17.0/STM32F411_FOC/Drivers/OLED/Inc/ssd1306_conf.h \
@@ -85,6 +85,7 @@ Core/Src/main.o: ../Core/Src/main.c ../Core/Inc/main.h \
 ../Drivers/CMSIS/Device/ST/STM32F4xx/Include/stm32f411xe.h:
 ../Core/Inc/timer_utils.h:
 ../Core/Inc/main.h:
+../Core/Inc/current_sense.h:
 ../Core/Inc/serial_commander.h:
 ../Core/Inc/foc_core.h:
 ../Core/Inc/oled.h:

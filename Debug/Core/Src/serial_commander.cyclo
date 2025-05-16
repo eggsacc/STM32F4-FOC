@@ -3,5 +3,5 @@
 ../Core/Src/serial_commander.c:74:15:Serial_Print	1
 ../Core/Src/serial_commander.c:86:15:SerialCommander_ParseControlType	11
 ../Core/Src/serial_commander.c:126:16:SerialCommander_ParseCommand	7
-../Core/Src/serial_commander.c:187:16:SerialCommander_SetMotorParam	10
-../Core/Src/serial_commander.c:235:6:SerialCommander_PollCommands	3
+../Core/Src/serial_commander.c:187:16:SerialCommander_SetMotorParam	11
+../Core/Src/serial_commander.c:238:6:SerialCommander_PollCommands	3

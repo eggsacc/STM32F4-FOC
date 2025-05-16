@@ -36,8 +36,6 @@ typedef struct
 	float upper_bound;
 
 	uint32_t timestamp_us;
-
-	/* Mode: 0 = P, 1 = PI, 2 = PID (default) */
 	PID_mode mode;
 }PID_t;
 

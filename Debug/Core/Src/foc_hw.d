@@ -1,5 +1,5 @@
-Core/Src/foc_hw.o: ../Core/Src/foc_hw.c ../Core/Inc/low_pass_filter.h \
- ../Core/Inc/main.h ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal.h \
+Core/Src/foc_hw.o: ../Core/Src/foc_hw.c ../Core/Inc/main.h \
+ ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal.h \
  ../Core/Inc/stm32f4xx_hal_conf.h \
  ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_rcc.h \
  ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_def.h \
@@ -32,12 +32,10 @@ Core/Src/foc_hw.o: ../Core/Src/foc_hw.c ../Core/Inc/low_pass_filter.h \
  ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_tim.h \
  ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_tim_ex.h \
  ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_uart.h \
- ../Core/Inc/foc_hw.h ../Core/Inc/foc_utils.h ../Core/Inc/AS5600.h \
- ../Core/Inc/pid.h \
+ ../Core/Inc/foc_hw.h ../Core/Inc/low_pass_filter.h \
+ ../Core/Inc/foc_utils.h ../Core/Inc/AS5600.h ../Core/Inc/pid.h \
  ../Drivers/CMSIS/Device/ST/STM32F4xx/Include/stm32f411xe.h \
- ../Core/Inc/timer_utils.h ../Core/Inc/main.h ../Core/Inc/foc_utils.h \
- ../Core/Inc/AS5600.h ../Core/Inc/timer_utils.h ../Core/Inc/pid.h
-../Core/Inc/low_pass_filter.h:
+ ../Core/Inc/timer_utils.h ../Core/Inc/main.h
 ../Core/Inc/main.h:
 ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal.h:
 ../Core/Inc/stm32f4xx_hal_conf.h:
@@ -73,13 +71,10 @@ Core/Src/foc_hw.o: ../Core/Src/foc_hw.c ../Core/Inc/low_pass_filter.h \
 ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_tim_ex.h:
 ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_uart.h:
 ../Core/Inc/foc_hw.h:
+../Core/Inc/low_pass_filter.h:
 ../Core/Inc/foc_utils.h:
 ../Core/Inc/AS5600.h:
 ../Core/Inc/pid.h:
 ../Drivers/CMSIS/Device/ST/STM32F4xx/Include/stm32f411xe.h:
 ../Core/Inc/timer_utils.h:
 ../Core/Inc/main.h:
-../Core/Inc/foc_utils.h:
-../Core/Inc/AS5600.h:
-../Core/Inc/timer_utils.h:
-../Core/Inc/pid.h:

@@ -212,6 +212,9 @@ static uint8_t SerialCommander_SetMotorParam(uint8_t motor_idx, const char* para
 	else if(!strcmp(param, "pid_d")){
 		motor->pid.kd = val;
 	}
+	else if(!strcmp(param, "current")){
+		motor->target_current = val;
+	}
 	else if(!strcmp(param, "ctrl")){
 		/* No update to control type if error parsing */
 		if(ctrl != error){
@@ -238,7 +241,7 @@ void SerialCommander_PollCommands()
 	if(serial_dev.rx_flag == 1)
 	{
 		uint8_t motor_idx;
-		char param[8];
+		char param[16];
 		float val;
 		Ctrl_t ctrl;
 

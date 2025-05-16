@@ -25,8 +25,7 @@
 #include "serial_commander.h"
 #include <string.h>
 #include "oled.h"
-#include "ssd1306.h"
-#include "ssd1306_fonts.h"
+
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -39,7 +38,7 @@
 #define I2C1_DMA_FLAG 0x01
 #define I2C2_DMA_FLAG 0x02
 #define ADC_DMA_FLAG 0x04
-
+#define ADC_ENABLED
 //#define ADC_ENABLED 1
 //#define UART_DEBUG 1
 //#define OLED 1
@@ -79,6 +78,7 @@ uint8_t OLED_CallbackCounter = 0;
 #endif
 uint32_t timestamp;
 float freq;
+
 //extern BLDCMotor* BLDCMotorArray[2];
 /* USER CODE END PV */
 
@@ -145,6 +145,8 @@ int main(void)
   /* DWT timer init (for micros) */
   DWT_Init();
 
+  HAL_TIM_Base_Start_IT(&htim4);
+
   /* Create sensor & motor object */
   AS5600 s1;
   BLDCMotor m1;
@@ -152,29 +154,38 @@ int main(void)
   /* Init motor object */
   BLDCMotor_Init(&m1, &htim2, 7);
   LinkSensor(&m1, &s1, &hi2c1);
+  CS_Init(&m1);
   m1.supply_voltage = 12;
-  m1.voltage_limit = 5;
+  m1.voltage_limit = 4;
   m1.sensor_dir = -1;
-  m1.pid.kp = 4;
-  m1.pid.mode = P;
-  SerialCommander_Init(&huart1);
-
-#ifdef ADC_ENABLED
-  	HAL_ADC_Start_DMA(&hadc1, ADC_buff, 4);
-#endif
-
-  	/* Start tim4 periodic callback */
-  HAL_TIM_Base_Start_IT(&htim4);
-
+  m1.pid.kp = 5;
+  m1.pid.ki = 200;
+  m1.pid.mode = PI;
+  //SerialCommander_Init(&huart1);
+  /* Start tim4 periodic callback */
+  char uart_buff[64];
+  uint32_t cnt = 0;
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	  Haptic_Virtual_Detents(&m1, 54);
+	  m1.vars.shaft_angle = AS5600_GetAngle(&s1);
+	  m1.dq.Uq = 3;
+	  SetTorque(&m1);
+	  float current = CS_SetTorque(&m1);
+	  SerialCommander_PollCommands();
 
-
+	  if(cnt >= 100)
+	  {
+		  cnt = 0;
+		  sprintf(uart_buff, "%f\n", current);
+		  HAL_UART_Transmit(&huart1, uart_buff, strlen(uart_buff), 100);
+	  }
+	  else{
+		  cnt++;
+	  }
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -249,7 +260,7 @@ static void MX_ADC1_Init(void)
   */
   hadc1.Instance = ADC1;
   hadc1.Init.ClockPrescaler = ADC_CLOCK_SYNC_PCLK_DIV4;
-  hadc1.Init.Resolution = ADC_RESOLUTION_10B;
+  hadc1.Init.Resolution = ADC_RESOLUTION_12B;
   hadc1.Init.ScanConvMode = ENABLE;
   hadc1.Init.ContinuousConvMode = DISABLE;
   hadc1.Init.DiscontinuousConvMode = DISABLE;

@@ -8,23 +8,14 @@
 /*
  * Includes
  */
-#include <low_pass_filter.h>
 #include "main.h"
 #include "foc_hw.h"
 #include <math.h>
-#include "stm32f4xx_hal_tim.h"
-#include "stm32f411xe.h"
-#include "foc_utils.h"
-#include "AS5600.h"
-#include "timer_utils.h"
-#include "pid.h"
 
 /*
- * Motor array & ADC buffer
+ * Motor array
  */
 BLDCMotor* BLDCMotorArray[2] = {NULL};
-uint32_t ADC_buff[4] = {0};
-
 /*
  * @brief Starts PWM channels 1, 2, 3 of specified timer.
  * @param[in] TIM_HandleTypeDef timer
@@ -50,23 +41,6 @@ __STATIC_INLINE void SetPWM(BLDCMotor* motor)
 }
 
 /*
- * @brief Update motor struct ADC values from ADC buffer
- */
-void BLDC_UpdateMotorADC_DMA()
-{
-	if(BLDCMotorArray[0] != NULL)
-	{
-		BLDCMotorArray[0]->vars.phase_current[0] = ADC_buff[0];
-		BLDCMotorArray[0]->vars.phase_current[1] = ADC_buff[1];
-	}
-	if(BLDCMotorArray[1] != NULL)
-	{
-		BLDCMotorArray[1]->vars.phase_current[0] = ADC_buff[2];
-		BLDCMotorArray[1]->vars.phase_current[1] = ADC_buff[3];
-	}
-}
-
-/*
  * @scope Static
  * @brief Initializers for motor sub-structs
  * @retval Struct_t struct
@@ -76,10 +50,9 @@ static Var_t Var_t_Init()
 	Var_t vars = {
 		.shaft_angle = 0,
 		.prev_us = 0,
-		.phase_current[0] = 0,
-		.phase_current[1] = 0
+		.phase_current_buff[0] = 0,
+		.phase_current_buff[1] = 0
 	};
-
 	return vars;
 }
 
@@ -89,7 +62,6 @@ static DQ_t DQ_t_Init()
 		.Ud = 0,
 		.Uq = 0
 	};
-
 	return dq;
 }
 
@@ -100,10 +72,18 @@ static PV_t PV_t_Init()
 		.Ub = 0,
 		.Uc = 0
 	};
-
 	return pv;
 }
 
+static PI_t PI_t_Init()
+{
+	PI_t pi = {
+			.Ia = 0,
+			.Ib = 0,
+			.Ic = 0
+	};
+	return pi;
+}
 /*
  * @brief Initializes motor object.
  *        Creates all relevant structs and returns main motor struct.
@@ -122,23 +102,20 @@ static PV_t PV_t_Init()
 void BLDCMotor_Init(BLDCMotor* motor, TIM_HandleTypeDef* timer, uint8_t pole_pairs)
 {
 	/* Store motor in motor array, to be referenced by other functions globally */
-	if(BLDCMotorArray[0] == NULL)
-	{
+	if(BLDCMotorArray[0] == NULL){
 		BLDCMotorArray[0] = motor;
 	}
-	else if(BLDCMotorArray[1] == NULL)
-	{
+	else if(BLDCMotorArray[1] == NULL){
 		BLDCMotorArray[1] = motor;
 	}
-	else
-	{
+	else {
 		return;
 	}
 
 	motor->sensor_dir = 1;
 	motor->pole_pairs = pole_pairs;
-	motor->vars.phase_current[0] = 0;
-	motor->vars.phase_current[1] = 0;
+	motor->vars.phase_current_buff[0] = 0;
+	motor->vars.phase_current_buff[1] = 0;
 	motor->voltage_limit = 3;
 	motor->supply_voltage = 12;
 
@@ -148,12 +125,12 @@ void BLDCMotor_Init(BLDCMotor* motor, TIM_HandleTypeDef* timer, uint8_t pole_pai
 	motor->vars = Var_t_Init();
 	motor->dq = DQ_t_Init();
 	motor->pv = PV_t_Init();
+	motor->pi = PI_t_Init();
 	motor->pid = PID_Init();
 	motor->lpf = LPF_Init();
 	motor->control = none;
 	motor->sensor = NULL;
 	motor->timer = timer;
-
 }
 
 /*
@@ -165,7 +142,6 @@ void SetTorque(BLDCMotor* motor) {
 	/* Constrain Uq to within voltage range */
 	motor->dq.Uq = _constrain(motor->dq.Uq, -motor->voltage_limit, motor->voltage_limit);
     /* Normalize electric angle */
-	/* Note that _normalizeAngle() works with floats, not fix16 */
     float el_angle = _normalizeAngle(_electricalAngle(motor->vars.shaft_angle, motor->pole_pairs));
 
 	/* Inverse park transform */

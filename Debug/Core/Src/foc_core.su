@@ -1,4 +1,4 @@
-../Core/Inc/foc_utils.h:74:23:_normalizeAngle	24	static
+../Core/Inc/foc_utils.h:75:23:_normalizeAngle	24	static
 ../Core/Inc/timer_utils.h:34:26:micros	4	static
 ../Core/Src/foc_core.c:22:6:SerialCommander_RunMode	16	static
 ../Core/Src/foc_core.c:70:6:OLVelocityControl	32	static

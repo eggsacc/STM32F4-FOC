@@ -1,0 +1,9 @@
+../Core/Inc/foc_utils.h:64:23:_cos	24	static
+../Core/Inc/foc_utils.h:75:23:_normalizeAngle	24	static
+../Core/Inc/foc_utils.h:88:23:_electricalAngle	16	static
+../Core/Src/current_sense.c:15:6:BLDC_UpdateMotorADC_DMA	4	static
+../Core/Src/current_sense.c:34:13:CS_CalibrateAmpOffset	32	static
+../Core/Src/current_sense.c:70:6:CS_Init	24	static
+../Core/Src/current_sense.c:85:6:CS_SamplePhaseCurrents	16	static
+../Core/Src/current_sense.c:92:14:CS_ComputeQD	40	static
+../Core/Src/current_sense.c:104:7:CS_SetTorque	24	static

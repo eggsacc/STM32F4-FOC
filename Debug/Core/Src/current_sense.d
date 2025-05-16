@@ -32,7 +32,11 @@ Core/Src/current_sense.o: ../Core/Src/current_sense.c \
  ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_pwr_ex.h \
  ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_tim.h \
  ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_tim_ex.h \
- ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_uart.h
+ ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_uart.h \
+ ../Core/Inc/foc_hw.h ../Core/Inc/low_pass_filter.h \
+ ../Core/Inc/foc_utils.h ../Core/Inc/AS5600.h ../Core/Inc/pid.h \
+ ../Drivers/CMSIS/Device/ST/STM32F4xx/Include/stm32f411xe.h \
+ ../Core/Inc/timer_utils.h ../Core/Inc/main.h
 ../Core/Inc/current_sense.h:
 ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal.h:
 ../Core/Inc/stm32f4xx_hal_conf.h:
@@ -67,3 +71,11 @@ Core/Src/current_sense.o: ../Core/Src/current_sense.c \
 ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_tim.h:
 ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_tim_ex.h:
 ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_uart.h:
+../Core/Inc/foc_hw.h:
+../Core/Inc/low_pass_filter.h:
+../Core/Inc/foc_utils.h:
+../Core/Inc/AS5600.h:
+../Core/Inc/pid.h:
+../Drivers/CMSIS/Device/ST/STM32F4xx/Include/stm32f411xe.h:
+../Core/Inc/timer_utils.h:
+../Core/Inc/main.h:

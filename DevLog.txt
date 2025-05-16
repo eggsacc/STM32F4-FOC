@@ -25,6 +25,20 @@ LOW PRIO
                                                                                 UPDATES
 
 *****************************************************************************************************************************************************************************
+25/4/25:
+- Attempted to implement a closed-loop torque control function in the current sense library, but it dosn't work
+- Still need to figure out how the current measurements SHOULD look; not sure why the calculated Uq value fluctuates between +ve and -ve?
+
+24/4/25:
+- Implemented current sense library (finally)
+- Changed ADC resolution to 12-bits
+- Some prelimary testing shows that the current sense works decent (?), but the values seem a little high.
+- For eg, the power supply is supplying ~0.15A, but the readings are liks 0.3-0.4A.
+
+22/4/25:
+- Serial commander works!!
+- [Hardware] Made a little gig to test the PID controller more.
+
 21/4/25:
 - Added a virtual detent simulation function
 - I think there's something wrong with the PID library. Using PID in close loop position does not work for some reason.

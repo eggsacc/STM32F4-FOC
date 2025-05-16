@@ -9,6 +9,7 @@
 #define INC_FOC_CORE_H_
 
 #include "foc_hw.h"
+#include "current_sense.h"
 
 /*
  * Control functions
